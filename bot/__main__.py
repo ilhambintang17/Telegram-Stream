@@ -11,6 +11,8 @@ from bot.telegram import StreamBot, UserBot
 from bot.telegram.clients import initialize_clients
 from bot.helper.media_cache import media_cache
 
+LOGGER.info(f"Media cache module loaded, enabled={media_cache.enabled}")
+
 loop = get_event_loop()
 
 async def start_services():
@@ -44,9 +46,12 @@ async def start_services():
     LOGGER.info("Surf-TG Started Revolving !")
     
     # Start cache cleanup background task
+    LOGGER.info(f"Checking media cache status: enabled={media_cache.enabled}")
     if media_cache.enabled:
         loop.create_task(cache_cleanup_task())
-        LOGGER.info(f"Media cache enabled: max {Telegram.CACHE_MAX_SIZE_GB}GB")
+        LOGGER.info(f"Media cache enabled: max {Telegram.CACHE_MAX_SIZE_GB}GB at {media_cache.cache_dir}")
+    else:
+        LOGGER.info("Media cache is disabled")
     
     await idle()
 
