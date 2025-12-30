@@ -1,196 +1,211 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png" type="image/x-icon">
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
-        type="image/x-icon">
-    <title>Surf-TG: Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Standard Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Surf-TG Login</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6467f2",
+                        "primary-hover": "#5254cf",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101122",
+                        "surface-dark": "#1c1c27",
+                        "border-dark": "#282839",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(145deg, rgba(28, 28, 39, 0.7) 0%, rgba(16, 17, 34, 0.7) 100%)',
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --accent: #e50914;
-            --accent-hover: #ff1a1a;
-            --text-primary: #ffffff;
+        /* Custom Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(28, 28, 39, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        body {
-            height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url('https://assets.nflxext.com/ffe/siteui/vlv3/ab180a27-b661-44cd-9579-9dcaf57ea4cc/4d6d7aae-413c-439f-9e66-681324750c95/US-en-20231009-popsignuptwoweeks-perspective_alpha_website_large.jpg');
-            /* Generic bg or keep simple gradient */
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            flex-direction: column;
-            color: white;
+        .input-glass {
+            background: rgba(16, 17, 34, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
         }
 
-        /* Overlay to ensure readability and dark branding */
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: -1;
+        .input-glass:focus {
+            border-color: #6467f2 !important;
+            background: rgba(16, 17, 34, 0.9) !important;
         }
 
-        .navbar {
-            background: transparent !important;
-            padding: 20px 40px !important;
-        }
-
-        .container {
-            margin: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-
-        form {
-            width: 100%;
-            max-width: 450px;
-            padding: 60px 68px 40px;
-            border-radius: 4px;
-            background: rgba(0, 0, 0, 0.75);
-            margin-bottom: 90px;
-        }
-
-        @media (max-width: 740px) {
-            form {
-                background: black;
-                padding: 20px;
-                margin-bottom: 0;
+        /* Smooth Entry Animation */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
 
-            .navbar {
-                padding: 15px !important;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        .inputBox {
-            margin-bottom: 20px;
+        .animate-entry {
+            animation: fadeSlideUp 0.6s ease-out forwards;
         }
 
-        .form-label {
-            color: #ccc;
-            font-size: 0.9em;
-        }
-
-        .form-control {
-            border-radius: 4px;
-            border: 0;
-            padding: 16px 20px;
-            background: #333;
-            color: white;
-        }
-
-        .form-control:focus {
-            background: #454545;
-            color: white;
-            box-shadow: none;
-            border-bottom: 2px solid var(--accent);
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 16px;
-            border-radius: 4px;
-            background: var(--accent);
-            border: none;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-top: 24px;
-            transition: background 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-        }
-
-        .card-header {
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 28px;
-            text-align: left;
-        }
-
-        .error-popup {
-            background: var(--accent);
-            color: white;
-            border: none;
-            margin-bottom: 20px;
-        }
-
-        .footer {
-            margin-top: auto;
-            padding: 20px;
+        /* Mesh Gradient Background */
+        .mesh-bg {
+            background-color: #101122;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(239, 83%, 67%, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(239, 83%, 67%, 0.1) 0px, transparent 50%);
         }
     </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg">
-        <a class="navbar-brand" href="/">
-            <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                height="50">
-        </a>
-    </nav>
-
-    <div class="container">
-        <!-- Error Popup -->
-        <div class="alert alert-dismissible fade show error-popup" id="errorPopup"
-            style="display: none; width: 100%; max-width: 450px;">
-            <strong>Oh snap! <!-- Error --></strong>
+<body
+    class="bg-background-dark text-white font-display min-h-screen flex flex-col relative overflow-x-hidden mesh-bg selection:bg-primary selection:text-white">
+    <!-- Top Navigation -->
+    <header class="w-full border-b border-white/5 px-6 py-4 z-20 absolute top-0 left-0">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 text-white">
+                <!-- Logo -->
+                <div class="w-8 h-8 text-primary">
+                    <svg class="w-full h-full drop-shadow-[0_0_8px_rgba(100,103,242,0.5)]" fill="none"
+                        viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                            fill="currentColor"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold tracking-tight">Surf-TG</h2>
+            </div>
         </div>
+    </header>
+    <!-- Main Content Area -->
+    <main class="flex-grow flex items-center justify-center p-4 z-10 pt-20">
+        <!-- Login Card -->
+        <div
+            class="w-full max-w-[440px] glass-panel rounded-2xl p-8 sm:p-10 animate-entry relative overflow-hidden group/card">
+            <!-- Subtle top glow line -->
+            <div
+                class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent">
+            </div>
 
-        <form id="signinForm" action="/login" method="post">
-            <h1 class="card-header">Sign In</h1>
-            <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
-            <fieldset>
-                <div class="inputBox">
-                    <input type="text" class="form-control" id="exampleInputUsername" name="username"
-                        placeholder="Username">
-                </div>
-                <div class="inputBox">
-                    <input type="password" class="form-control" id="exampleInputPassword1" name="password"
-                        placeholder="Password" autocomplete="off">
-                </div>
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary">Sign In</button>
-                </div>
-            </fieldset>
-        </form>
-    </div>
+            <!-- Error Alert -->
+            <div id="errorPopup"
+                class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">error</span>
+                <span><strong>Error:</strong> <!-- Error --></span>
+            </div>
 
-    <footer class="footer text-center"></footer>
-
-</body>
-<script>
-    window.onload = function () {
-        var errorPopup = document.getElementById("errorPopup");
-        // Simple check if error template variable was populated
-        var errorContent = document.querySelector("strong").innerText.trim();
-
-        // Show only if there is a real error message replaced by the server
-        if (errorContent && errorContent !== "Oh snap! <!-- Error -->" && errorContent !== "Oh snap!") {
-            errorPopup.style.display = "block";
-
-            if (errorContent.includes("Invalid username")) {
-                setTimeout(() => errorPopup.style.display = "none", 5000);
+            <!-- Header Section -->
+            <div class="flex flex-col items-center mb-8">
+                <h1 class="text-white tracking-tight text-3xl font-bold leading-tight text-center mb-2">Welcome Back
+                </h1>
+                <p class="text-gray-400 text-sm font-normal text-center">Stream your world with Surf-TG.</p>
+            </div>
+            <!-- Login Form -->
+            <form class="flex flex-col gap-5" action="/login" method="post">
+                <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+                <!-- Username Field -->
+                <label class="flex flex-col gap-2">
+                    <span class="text-sm font-medium text-gray-300 ml-1">Username</span>
+                    <div class="relative group">
+                        <span
+                            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary transition-colors duration-200">
+                            <span class="material-symbols-outlined text-[20px]">person</span>
+                        </span>
+                        <input
+                            class="input-glass form-input w-full rounded-xl text-white focus:ring-0 focus:ring-offset-0 h-12 pl-11 pr-4 placeholder:text-gray-600 text-sm transition-all duration-300 shadow-sm"
+                            placeholder="Username" type="text" name="username" id="exampleInputUsername" />
+                    </div>
+                </label>
+                <!-- Password Field -->
+                <label class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center ml-1">
+                        <span class="text-sm font-medium text-gray-300">Password</span>
+                    </div>
+                    <div class="relative group">
+                        <span
+                            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary transition-colors duration-200">
+                            <span class="material-symbols-outlined text-[20px]">lock</span>
+                        </span>
+                        <input
+                            class="input-glass form-input w-full rounded-xl text-white focus:ring-0 focus:ring-offset-0 h-12 pl-11 pr-12 placeholder:text-gray-600 text-sm transition-all duration-300 shadow-sm"
+                            placeholder="Enter your password" type="password" name="password"
+                            id="exampleInputPassword1" />
+                        <button
+                            class="absolute right-0 top-0 h-full px-4 text-gray-500 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+                            type="button" onclick="togglePassword()">
+                            <span class="material-symbols-outlined text-[20px]" id="eyeIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </label>
+                <!-- Submit Button -->
+                <button
+                    class="mt-2 w-full h-12 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-sm font-bold rounded-xl shadow-[0_4px_14px_0_rgba(100,103,242,0.39)] hover:shadow-[0_6px_20px_rgba(100,103,242,0.23)] transition-all duration-300 flex items-center justify-center gap-2 group-hover/btn:translate-x-1"
+                    type="submit">
+                    <span>Sign In</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+            </form>
+            <!-- Footer of Card -->
+            <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                <p class="text-sm text-gray-400">
+                    <a class="text-white font-semibold hover:text-primary transition-colors duration-200 ml-1"
+                        href="https://t.me/weebzone_updates">Surf-TG Updates</a>
+                </p>
+            </div>
+        </div>
+    </main>
+    <!-- Page Footer -->
+    <footer class="w-full py-6 text-center z-10">
+    </footer>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('exampleInputPassword1');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerText = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.innerText = 'visibility_off';
             }
         }
-    };
-</script>
+
+        window.onload = function () {
+            var errorContent = "<!-- Error -->";
+            if (errorContent && errorContent.length > 0 && !errorContent.includes("<!--")) {
+                document.getElementById("errorPopup").classList.remove("hidden");
+            }
+        };
+    </script>
+</body>
 
 </html>

@@ -1,288 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png" type="image/x-icon">
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
-        type="image/x-icon">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <title>Surf-TG: <!-- Filename --> </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/css/plyr.css">
-    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Use standard Bootstrap 5, not the variable theme which user wanted disabled -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Surf-TG - <!-- Filename --></title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Plyr CSS -->
+    <link href="https://cdn.plyr.io/3.7.8/plyr.css" rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Config -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6467f2",
+                        "primary-hover": "#5053c9",
+                        "background-dark": "#0f1016",
+                        "surface-dark": "#181926",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'glow-gradient': 'radial-gradient(circle at 50% -20%, rgba(100, 103, 242, 0.15), rgba(16, 17, 34, 0) 50%)',
+                    }
+                },
+            },
+        }
+    </script>
+    <!-- Custom CSS for Glassmorphism & Plyr Overrides -->
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --accent: #e50914;
-            --accent-hover: #ff1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --card-glass: rgba(18, 18, 26, 0.7);
-        }
-
         body {
-            height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            display: flex;
-            flex-direction: column;
+            background-color: #0f1016;
+            color: white;
         }
 
-        .navbar {
-            background: rgba(10, 10, 15, 0.8) !important;
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(30, 31, 48, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-nav {
+            background: rgba(15, 16, 22, 0.85);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 20px !important;
-            margin-bottom: 20px !important;
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .navbar-brand img {
-            filter: drop-shadow(0 0 5px rgba(229, 9, 20, 0.5));
-        }
-
-        .container {
-            margin: auto;
-            padding: 0px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .video-player {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            background: #000;
-            position: relative;
-        }
-
-        .plyr {
-            --plyr-color-main: var(--accent);
-            --plyr-video-background: #000;
-        }
-
-        .card {
-            background: var(--card-glass);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 1000px;
-            color: var(--text-primary);
-        }
-
-        .card-title {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .card-text {
-            color: var(--text-secondary);
-        }
-
-        .btn-action {
-            background: var(--bg-secondary);
+        .glass-button {
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            padding: 10px 20px;
-            border-radius: 8px;
             transition: all 0.3s ease;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
         }
 
-        .btn-action:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: white;
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
         }
 
-        .btn-logout {
-            color: var(--text-secondary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Plyr Customization to match theme */
+        .plyr {
+            --plyr-color-main: #6467f2;
+            --plyr-video-control-item-hover-color: #6467f2;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
         }
 
-        .btn-logout:hover {
-            color: white;
-            border-color: white;
-            background: transparent;
+        .plyr__control--overlaid {
+            background: rgba(100, 103, 242, 0.8);
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            background: var(--bg-primary);
+        .plyr__control--overlaid:hover {
+            background: #6467f2;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        /* Mobile Responsive Fixes */
-        @media (max-width: 992px) {
-            .video-player {
-                max-width: 100%;
-                width: 100%;
-                border-radius: 0;
-                /* Edge to edge on mobile */
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
 
-            .container {
-                padding: 0;
-                gap: 15px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            .card {
-                margin: 0 15px;
-                width: calc(100% - 30px);
-            }
+        .animate-enter {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
 
-            .actions-container {
-                padding: 0 15px 30px 15px;
-                justify-content: center;
-            }
+        .delay-100 {
+            animation-delay: 100ms;
+        }
+
+        .delay-200 {
+            animation-delay: 200ms;
+        }
+
+        .delay-300 {
+            animation-delay: 300ms;
         }
     </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="40">
-            </a>
-            <div class="d-flex">
-                <form id="signoutForm" action="/logout" method="post" class="d-flex" role="logout">
-                    <button type="submit" class="btn btn-logout btn-sm display-flex align-items-center gap-2">
-                        <i class="bi bi-box-arrow-left"></i> Logout
-                    </button>
-                </form>
+<body
+    class="font-display min-h-screen flex flex-col antialiased bg-background-dark bg-glow-gradient overflow-x-hidden selection:bg-primary selection:text-white">
+    <!-- Navbar -->
+    <nav class="glass-nav fixed top-0 w-full z-50 h-16">
+        <div class="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="size-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-[20px]">movie</span>
+                </div>
+                <h1 class="text-white text-xl font-bold tracking-tight">Surf-TG</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/logout"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </a>
             </div>
         </div>
     </nav>
-
-    <div class="video-player">
-        <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
-            <source src="#" type="video/mp4" />
-        </video>
-    </div>
-
-    <div class="container">
-        <div class="card p-3">
-            <div class="card-body p-0">
-                <h5 class="card-title mb-2"><!-- Filename --></h5>
-                <p class="card-text small mb-0"><i class="bi bi-hdd-fill me-2"></i>Size: <!-- Size --></p>
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6">
+        <div class="max-w-6xl mx-auto flex flex-col gap-8">
+            <!-- Video Player Section -->
+            <div class="w-full aspect-video bg-black/40 rounded-xl relative group animate-enter z-10">
+                <video class="w-full h-full rounded-xl" controls="" id="player" playsinline="">
+                    <!-- The source will be set by JS via window.location -->
+                </video>
+            </div>
+            <!-- Meta & Actions Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-enter delay-100">
+                <!-- File Info Card -->
+                <div
+                    class="lg:col-span-2 glass-panel rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="size-12 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                            <span class="material-symbols-outlined text-[24px]">folder_open</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <h2 class="text-lg sm:text-xl font-bold text-white leading-tight break-all">
+                                <!-- Filename --></h2>
+                            <div class="flex items-center gap-2 text-sm text-gray-400 font-medium">
+                                <span class="bg-white/10 px-2 py-0.5 rounded text-xs text-gray-300">File</span>
+                                <span>•</span>
+                                <span><!-- Size --></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Primary CTA -->
+                    <a id="download_link" href="#"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-bold shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95">
+                        <span class="material-symbols-outlined">download</span>
+                        <span>Download File</span>
+                    </a>
+                </div>
+                <!-- Stats/Extra -->
+                <div class="lg:col-span-1 glass-panel rounded-xl p-6 flex flex-col justify-center">
+                    <p class="text-xs font-bold text-primary uppercase tracking-wider mb-2">Streaming Status</p>
+                    <div class="flex items-end gap-2">
+                        <span class="text-3xl font-bold text-white" id="status-text">Active</span>
+                    </div>
+                    <div class="w-full bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div class="bg-green-500 h-full w-[100%] rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 text-right">Stream Ready</p>
+                </div>
+            </div>
+            <!-- Action Buttons Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-enter delay-200">
+                <!-- External Players -->
+                <div class="glass-panel rounded-xl p-6">
+                    <div
+                        class="flex items-center gap-2 mb-4 text-gray-400 text-sm font-semibold uppercase tracking-wider">
+                        <span class="material-symbols-outlined text-sm">cast</span>
+                        Open With External Player
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <a href="#" id="mx_player"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-primary transition-colors">play_circle</span>
+                            <span class="text-xs font-bold text-gray-300">MX Player</span>
+                        </a>
+                        <a href="#" id="vlc_player"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-orange-500 transition-colors">traffic</span>
+                            <span class="text-xs font-bold text-gray-300">VLC</span>
+                        </a>
+                        <a href="#" id="km_player" onclick="alert('KM Player integration coming soon')"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-purple-400 transition-colors">smart_display</span>
+                            <span class="text-xs font-bold text-gray-300">KM Player</span>
+                        </a>
+                    </div>
+                </div>
+                <!-- File Utility Actions -->
+                <div class="glass-panel rounded-xl p-6">
+                    <div
+                        class="flex items-center gap-2 mb-4 text-gray-400 text-sm font-semibold uppercase tracking-wider">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                        File Options
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <a href="/dl/<!-- ID -->"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-blue-400 transition-colors">file_present</span>
+                            <span class="text-xs font-bold text-gray-300">Get File</span>
+                        </a>
+                        <button onclick="copyLink()"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-green-400 transition-colors">link</span>
+                            <span class="text-xs font-bold text-gray-300">Copy URL</span>
+                        </button>
+                        <button onclick="alert('Reporting feature unavailable')"
+                            class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
+                            <span
+                                class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-red-400 transition-colors">report</span>
+                            <span class="text-xs font-bold text-gray-300">Report</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="d-flex flex-wrap gap-3 w-100 actions-container justify-content-center">
-            <div onclick="mx_player()" class="btn-action"><i class="bi bi-play-circle"></i> MX Player</div>
-            <div onclick="vlc_player()" class="btn-action"><i class="bi bi-cone-striped"></i> VLC</div>
-            <div onclick="km_player()" class="btn-action"><i class="bi bi-play-btn"></i> KM Player</div>
-            <div onclick="get_file()" class="btn-action"><i class="bi bi-telegram"></i> Get File</div>
-            <div onclick="copyUrl()" class="btn-action"><i class="bi bi-link-45deg"></i> Copy Link</div>
-            <div onclick="download()" class="btn-action"><i class="bi bi-download"></i> Download</div>
+    </main>
+    <!-- Simple Footer -->
+    <footer class="border-t border-white/5 py-8 mt-auto animate-enter delay-300">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500">
+                © 2024 Surf-TG Player. All rights reserved.
+            </p>
         </div>
-    </div>
+    </footer>
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let downloadLink = window.location.href.replace("/watch/", "/");
+            let videoPlayer = document.getElementById("player");
+            videoPlayer.src = downloadLink;
 
-    <!-- Empty footer as requested -->
-    <footer style="margin-top: auto; padding: 20px;"></footer>
+            document.getElementById("download_link").href = downloadLink;
 
-</body>
-<script>
-    const videolink = window.location.href;
-    const url = new URL(videolink);
-    const domainUrl = url.origin;
-    const videoIdWithParams = videolink.split('/').pop();
-    const videoId = videoIdWithParams.split('?')[0];
-    const idParam = new URLSearchParams(window.location.search).get('id');
-    const hashParam = new URLSearchParams(window.location.search).get('hash');
-    const encodedName = encodeURIComponent('<!-- Filename -->');
+            let mxPlayerLink = "intent:" + downloadLink + "#Intent;package=com.mxtech.videoplayer.ad;S.title=" + encodeURIComponent("<!-- Filename -->") + ";end";
+            document.getElementById("mx_player").href = mxPlayerLink;
 
-    const downloadlink = `${domainUrl}/${videoId}/${encodedName}?id=${idParam}&hash=${hashParam}`;
+            let vlcPlayerLink = "vlc://" + downloadLink;
+            document.getElementById("vlc_player").href = vlcPlayerLink;
 
-    const player = new Plyr('#player', {
-        controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen', 'pip', 'airplay', 'settings', "play-large", 'duration'],
-        hideControls: false,
-        keyboard: { focused: true, global: true },
-        loop: { active: false },
-        seekTime: 10,
-        invertTime: true,
-        toggleInvert: true,
-        previewThumbnails: { enabled: false },
-    });
+            // Initialize Plyr
+            const player = new Plyr('#player', {
+                controls: [
+                    'play-large',
+                    'play',
+                    'progress',
+                    'current-time',
+                    'mute',
+                    'volume',
+                    'captions',
+                    'settings',
+                    'pip',
+                    'airplay',
+                    'fullscreen'
+                ],
+                settings: ['captions', 'quality', 'speed'],
+                speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] }
+            });
+        });
 
-    player.on('ready', () => {
-        const video = player.media;
-        video.preload = 'auto';
-    });
-
-    function mx_player() {
-        window.location.href = `intent:${downloadlink}#Intent;package=com.mxtech.videoplayer.ad;end`;
-    }
-
-    function vlc_player() {
-        window.location.href = `vlc://${downloadlink}`;
-    }
-
-    function km_player() {
-        window.location.href = `intent:${downloadlink}#Intent;package=com.kmplayer;end`;
-    }
-
-    function download() {
-        window.location.href = downloadlink;
-    }
-
-    function get_file() {
-        const regex = /(\d+)\?id=(\d+)&/;
-        const match = videolink.match(regex);
-        if (match) {
-            const chatId = "-100" + match[1];
-            const messageId = match[2];
-            window.location.href = `https://t.me/<!-- Username -->?start=file_${messageId}${chatId}`;
+        function copyLink() {
+            let downloadLink = window.location.href.replace("/watch/", "/");
+            navigator.clipboard.writeText(downloadLink).then(function () {
+                alert('Link copied to clipboard');
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
         }
-    }
-
-    function copyUrl() {
-        navigator.clipboard.writeText(downloadlink)
-            .then(() => alert('URL copied to clipboard!'))
-            .catch(err => console.error('Failed to copy: ', err));
-    }
-
-    function updateVideoSource() {
-        const videoElement = document.getElementById('player');
-        const source = videoElement.querySelector('source');
-        source.src = downloadlink;
-        source.type = 'video/mp4';
-        videoElement.load();
-    }
-
-    window.onload = updateVideoSource;
-</script>
+    </script>
+</body>
 
 </html>

@@ -1,182 +1,249 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png" type="image/x-icon">
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
-        type="image/x-icon">
-    <title>Surf-TG: <!-- Filename --> </title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Surf-TG - File Details</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6467f2",
+                        "primary-hover": "#5053d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0f0f13",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-bg": "rgba(255, 255, 255, 0.03)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --accent: #e50914;
-            --accent-hover: #ff1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --card-glass: rgba(18, 18, 26, 0.7);
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            justify-content: center;
-            align-items: center;
-            display: flex;
-            flex-direction: column;
-            color: var(--text-primary);
-        }
-
-        .navbar {
-            background: rgba(10, 10, 15, 0.8) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem !important;
-            padding: 10px 20px !important;
-            width: 100%;
-            position: absolute;
-            top: 0;
-        }
-
-        .container {
-            margin: auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            padding-top: 60px;
-        }
-
-        .card {
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px !important;
-            background: var(--card-glass);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-width: 90%;
-            width: 100%;
-            color: var(--text-primary);
-        }
-
-        .card-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .footer {
-            margin-top: auto;
-            padding: 20px 0;
-        }
-
+        /* Custom scrollbar for webkit */
         ::-webkit-scrollbar {
             width: 8px;
         }
 
+        ::-webkit-scrollbar-track {
+            background: #111118;
+        }
+
         ::-webkit-scrollbar-thumb {
-            background: #333;
+            background: #282839;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
+            background: #3b3c54;
+        }
+
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(30, 30, 40, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            border-color: #6467f2;
+            box-shadow: 0 0 0 2px rgba(100, 103, 242, 0.2);
+            outline: none;
+        }
+
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.4;
         }
     </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark" style="margin-bottom: 1rem; padding: 10px;">
-        <div class="container">
-            <a class="navbar-brand" style="border: 0px;" href="/">
-                <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="45">
+<body
+    class="bg-background-dark text-white font-display antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+    <!-- Ambient Background Effects -->
+    <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/30 ambient-glow animate-pulse-slow"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 ambient-glow animate-pulse-slow"
+        style="animation-delay: 2s;"></div>
+    <div class="fixed top-[20%] right-[10%] w-[20%] h-[20%] bg-blue-600/20 ambient-glow animate-float"></div>
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 w-full glass-panel border-b-0 border-b-glass-border">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="size-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-white text-xl">cloud_download</span>
+                </div>
+                <h1
+                    class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                    Surf-TG
+                </h1>
+            </div>
+            <a href="/logout"
+                class="group flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-200">
+                <span class="text-sm font-medium text-gray-300 group-hover:text-white">Logout</span>
+                <span class="material-symbols-outlined text-gray-400 group-hover:text-white text-[18px]">logout</span>
             </a>
-            <div>
-                <form id="signoutForm" action="/logout" method="post">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-left"></i> Logout</button>
-                </form>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="relative z-10 flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-4xl mx-auto">
+            <!-- Breadcrumbs / Back button -->
+            <div class="mb-6 flex items-center">
+                <button onclick="history.back()"
+                    class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-medium">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    Back
+                </button>
+            </div>
+            <!-- Main Glass Card -->
+            <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl animate-[fadeIn_0.5s_ease-out]">
+                <!-- Card Header / Hero -->
+                <div class="relative h-48 md:h-64 bg-black/40 overflow-hidden group">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-60 group-hover:scale-105 transition-transform duration-700"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCiGSk5wkc1J55IcJozvJqEWWijHOkA2b5Vfci-30r_ZYzX_9wecvarTV8fq_6c9dL_ledNgtd7RrxIxZFklVEJyezSnWzK9EX69L1raTfVjG73gCjWjSnyleOQp4dJjFsY-mlnfvz1ksYEqd-gdthfaWsXOjSIs6G8Ec4BnnbZC1KFWr8O_hP7tK_Vxex0JfI5kwNbAORW2zV7yv8h1xw6wiupAI1Oe-r6W3sh5d4h_2y1Rfv_ocOaWqZ9jZ5toRUwIpGJdC04cYc');">
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#1e1e28] to-transparent"></div>
+                    <!-- File Type Badge -->
+                    <div class="absolute top-6 left-6">
+                        <span
+                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-xs font-semibold text-white tracking-wide uppercase">
+                            <span class="material-symbols-outlined text-sm text-primary">description</span>
+                            File
+                        </span>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="p-6 md:p-10 -mt-12 relative">
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        <!-- File Icon / Thumbnail -->
+                        <div class="shrink-0 relative hidden md:block">
+                            <div
+                                class="w-32 h-32 rounded-xl bg-[#252535] border border-white/10 shadow-xl flex items-center justify-center overflow-hidden">
+                                <span class="material-symbols-outlined text-6xl text-primary/80">play_circle</span>
+                            </div>
+                        </div>
+                        <!-- Info & Actions -->
+                        <div class="flex-grow w-full space-y-8">
+                            <!-- Header Info -->
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-bold text-white leading-tight mb-2">
+                                    <!-- Filename --></h2>
+                                <div class="flex flex-wrap items-center gap-4 text-gray-400 text-sm md:text-base">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px]">hard_drive</span>
+                                        <!-- Size -->
+                                    </div>
+                                    <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+                                    <div class="flex items-center gap-1.5 text-green-400">
+                                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                        Available
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Input Field -->
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-gray-300 block ml-1">Direct Link</label>
+                                <div class="relative group/input">
+                                    <input
+                                        class="glass-input w-full h-12 rounded-lg pl-4 pr-12 text-sm font-mono text-gray-300 selection:bg-primary/30"
+                                        readonly="" type="text" id="stream_link" value="" />
+                                    <button
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                        title="Copy to clipboard" onclick="copyLink()">
+                                        <span class="material-symbols-outlined text-[20px]">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Action Buttons -->
+                            <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                                <a href="#" id="download_btn"
+                                    class="flex-1 h-12 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_-5px_rgba(100,103,242,0.5)] hover:shadow-[0_0_25px_-5px_rgba(100,103,242,0.7)]">
+                                    <span class="material-symbols-outlined">download</span>
+                                    Download Now
+                                </a>
+                                <a href="#" id="watch_btn"
+                                    class="flex-1 h-12 bg-[#2c2c3d] hover:bg-[#363649] border border-white/5 text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all">
+                                    <span class="material-symbols-outlined text-blue-400">play_arrow</span>
+                                    Watch Online
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <div class="card bg-light mb-3" style="margin: auto; border-radius: 5px;">
-        <div class="card-body">
-            <h5 class="card-title">Name: <!-- Filename --></h5>
-            <p class="card-text">Size: <!-- Size --></p>
-        </div>
-    </div>
-
-    <div class="container d-flex justify-content-center align-items-center" style="width: 100%; padding: 0 5px;">
-        <div onclick="copyUrl()" class="btn btn-primary">Copy Url</div>
-        <div onclick="download()" class="btn btn-primary">Download</div>
-        <div onclick="get_file()" class="btn btn-primary">Get File</div>
-    </div>
-
-    <footer class="footer mt-auto py-3 text-muted text-center">
-    </footer>
-
+    </main>
     <script>
-        const videolink = window.location.href;
-        const url = new URL(videolink);
-        const domainUrl = url.origin;
-        const videoIdWithParams = videolink.split('/').pop();
-        const videoId = videoIdWithParams.split('?')[0];
-        const idParam = new URLSearchParams(window.location.search).get('id');
-        const hashParam = new URLSearchParams(window.location.search).get('hash');
-        const encodedName = encodeURIComponent('<!-- Filename -->');
-
-        const downloadlink = `${domainUrl}/${videoId}/${encodedName}?id=${idParam}&hash=${hashParam}`;
-
-
-        function download() {
-            const openDownloadLink = downloadlink;
-            window.location.href = openDownloadLink;
-        }
-        function get_file() {
-            const regex = /(\d+)\?id=(\d+)&/;
-            const match = videolink.match(regex);
-            if (match) {
-                const chatId = "-100" + match[1];
-                const messageId = match[2];
-                const openTG = `https://t.me/<!-- Username -->?start=file_${messageId}${chatId}`;
-                window.location.href = openTG;
+        document.addEventListener('DOMContentLoaded', () => {
+            let link = window.location.href;
+            if (link.includes("/dl/share/v/")) {
+                // Already correct format
+            } else {
+                // Fallback if accessed directly differently (though /dl/ usually serves this)
             }
-        }
-        function copyUrl() {
-            const url = downloadlink;
-            navigator.clipboard.writeText(url)
-                .then(() => {
-                    alert('URL copied to clipboard!');
-                })
-                .catch((error) => {
-                    console.error('Failed to copy URL: ', error);
-                });
-        }
+            document.getElementById('stream_link').value = link;
+            document.getElementById('download_btn').href = link;
 
+            let watchLink = link.replace("/dl/share/v/", "/watch/");
+            document.getElementById('watch_btn').href = watchLink;
+        });
+
+        function copyLink() {
+            var copyText = document.getElementById("stream_link");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Link copied: " + copyText.value);
+        }
     </script>
 </body>
-
-<script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
 
 </html>

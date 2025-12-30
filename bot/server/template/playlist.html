@@ -1,307 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png" type="image/x-icon">
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
-        type="image/x-icon">
-    <title>Surf-TG: Playlist- <!-- Title --> </title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" <link
-        rel="stylesheet" href="https://bootswatch.com/5/<!-- Theme -->/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/js/SurfTG.js"></script>
-    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Surf-TG Playlist</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6467f2",
+                        "primary-hover": "#5255d6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101122",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-surface": "rgba(255, 255, 255, 0.03)",
+                        "glass-surface-hover": "rgba(255, 255, 255, 0.06)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --accent: #e50914;
-            --accent-hover: #ff1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --card-glass: rgba(18, 18, 26, 0.6);
-            --card-hover: rgba(255, 255, 255, 0.1);
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            padding-bottom: 60px;
-        }
-
-        .navbar {
-            background: rgba(10, 10, 15, 0.8) !important;
+        /* Custom Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(16, 17, 34, 0.7);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 15px 0;
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--tw-colors-glass-border);
         }
 
-        .card {
-            background: var(--card-glass);
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
-            color: var(--text-primary);
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            background: var(--card-hover);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        .glass-card:hover {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-color: rgba(100, 103, 242, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
 
-        .card-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: transparent;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: var(--text-primary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .form-control {
-            background: var(--bg-secondary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .form-control:focus {
-            background: var(--bg-secondary);
-            color: white;
-            border-color: var(--accent);
-            box-shadow: none;
-        }
-
-        .modal-content {
-            background: #1a1a24;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
+        /* Gradient Background Blobs */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: -1;
         }
     </style>
 </head>
 
-<body>
-
-    <div class="admin-only modal fade" id="createFolderModal" aria-labelledby="createFolderModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form action="/create" method="post">
-                        <label for="folderName" class="form-label">Folder Name</label>
-                        <input type="text" class="form-control" id="folderName" name="folderName"
-                            placeholder="Enter folder name">
-                        <label for="thumbnail" class="form-label">Thumbnail</label>
-                        <input type="text" class="form-control" id="thumbnail" name="thumbnail"
-                            placeholder="Thumbnail url"><br>
-                        <input type="hidden" id="parent_dir" name="parent_dir" readonly>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Create</button>
-                        </div>
-                    </form>
+<body
+    class="bg-background-dark text-white font-display antialiased min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary selection:text-white">
+    <!-- Ambient Background Effects -->
+    <div class="bg-blob bg-primary w-96 h-96 top-0 left-[-100px]"></div>
+    <div class="bg-blob bg-purple-600 w-[500px] h-[500px] bottom-0 right-[-100px]"></div>
+    <div class="bg-blob bg-blue-600 w-64 h-64 top-[40%] left-[30%] opacity-10"></div>
+    <!-- Top Navigation Bar -->
+    <nav class="sticky top-0 z-50 w-full glass-panel border-b border-glass-border">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="size-8 text-primary">
+                        <span class="material-symbols-outlined text-[32px]">waves</span>
+                    </div>
+                    <span
+                        class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">Surf-TG</span>
+                </div>
+                <!-- Right Actions -->
+                <div class="flex items-center gap-6">
+                    <div class="h-6 w-px bg-white/10 hidden md:block"></div>
+                    <div class="flex items-center gap-4">
+                        <a href="/logout"
+                            class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-sm font-medium transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                            <span>Logout</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="admin-only modal fade" id="editModal" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form action="/edit_post" method="post">
-                        <input type="hidden" id="edit_file_id" name="file_id" value="">
-                        <input type="hidden" id="edit_file_size" name="file_size" value="">
-                        <input type="hidden" id="edit_file_folder_id" name="file_folder_id" value="">
-                        <input type="hidden" id="edit_file_type" name="file_type" value="">
-                        <label for="edit_fileName">File Name:</label>
-                        <input type="text" class="form-control" id="edit_fileName" name="fileName" value=""><br>
-                        <label for="edit_filethumbnail">File Thumbnail:</label>
-                        <input type="text" class="form-control" id="edit_filethumbnail" name="filethumbnail"
-                            value=""><br>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary  me-2"
-                                onclick="submitEditFileForm()">Submit</button>
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-danger" onclick="deleteFileItem()">Delete</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="admin-only modal fade" id="editFolderModal" aria-labelledby="editFolderModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form action="/edit" method="post">
-                        <input type="hidden" id="edit_folder_id" name="folder_id" value="">
-                        <input type="hidden" id="edit_parent" name="parent" value="">
-                        <label for="edit_folderName">Folder Name:</label>
-                        <input type="text" class="form-control" id="edit_folderName" name="folderName" value=""><br>
-                        <label for="edit_thumbnail">Thumbnail:</label>
-                        <input type="text" class="form-control" id="edit_thumbnail" name="thumbnail" value=""><br>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary  me-2"
-                                onclick="submitEditForm()">Submit</button>
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-danger" onclick="deleteItem()">Delete</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <nav class="navbar navbar-expand-lg bg-primary mb-3 p-1" data-bs-theme="dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="40">
-            </a>
-            <form id="signoutForm" action="/logout" method="post" class="d-flex" role="logout">
-                <button type="submit" class="btn btn-secondary btn-sm"><i class="bi bi-box-arrow-left"></i>
-                    Logout</button>
-            </form>
         </div>
     </nav>
-
-    <div class="container d-flex align-items-center justify-content-center">
-        <div class="card mx-auto text-center">
-            <div class="card-header"><!-- Title --></div>
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumbs -->
+        <nav aria-label="Breadcrumb" class="flex items-center text-sm text-gray-400 mb-6">
+            <a class="hover:text-primary transition-colors flex items-center gap-1" href="/">
+                <span class="material-symbols-outlined text-[18px]">home</span>
+                Home
+            </a>
+            <span class="mx-2 text-gray-600">/</span>
+            <span class="text-white font-medium">Browse</span>
+        </nav>
+        <!-- Page Header -->
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
+            <div class="flex-1">
+                <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white mb-2 leading-tight">
+                    Browser
+                </h1>
+            </div>
+            <!-- Toolbar Actions -->
+            <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                <!-- Search -->
+                <form method="post" action="/search" class="relative group w-full sm:w-64">
+                    <input type="hidden" name="chat_id" value="<!-- Chat_id -->">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span
+                            class="material-symbols-outlined text-gray-500 group-focus-within:text-primary transition-colors">search</span>
+                    </div>
+                    <input
+                        class="block w-full pl-10 pr-3 py-2.5 bg-glass-surface border border-glass-border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all hover:bg-glass-surface-hover"
+                        placeholder="Search..." type="text" name="query" />
+                </form>
+            </div>
         </div>
-        <button type="button" class="admin-only btn btn-secondary btn-sm" data-bs-toggle="modal"
-            data-bs-target="#createFolderModal" onclick="createPopupForm(event)">Create Folder</button>
-    </div>
-
-    <div class="container">
-        <form class="d-flex" style="margin: auto; padding-top: 10px; padding-bottom: 20px;"
-            action="/search/db/<!-- Parent_id -->" method="get">
-            <input class="form-control me-sm-2" type="search" placeholder="Search" name="q">
-            <button class="btn btn-secondary my-sm-0" type="submit">Search</button>
-        </form>
-    </div>
-
-    <div class="container py-2">
-        <!-- Folder grid  -->
-        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-2">
-            <!-- Folder card  -->
-            <!-- Playlist -->
+        <!-- FOLDERS SECTION -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">folder</span>
+                    Content
+                </h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <!-- Print -->
+            </div>
+        </section>
+        <!-- Pagination -->
+        <div
+            class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 py-4 border-t border-glass-border">
+            <div class="flex items-center gap-2">
+                <!-- Prev -->
+                <!-- Next -->
+            </div>
         </div>
-        <!-- Playlist Grid Card  -->
-        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-2">
-            <!-- Playlist File Card  -->
-            <!-- Database -->
-        </div>
-    </div>
-    <div class="container d-flex align-items-center justify-content-center">
-        <div>
-            <ul class="pagination">
-                <li class="page-item">
-                    <a class="page-link" id="prevButton" href="#">Previous</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" id="nextButton" href="#">Next</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <footer class="footer mt-auto py-3 text-muted text-center">
-    </footer>
+    </main>
 </body>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const prevButton = document.getElementById("prevButton");
-        const nextButton = document.getElementById("nextButton");
-
-        const url = new URL(window.location.href);
-        const parentId = url.searchParams.get("db");
-        const currentPage = url.searchParams.get("page") ? parseInt(url.searchParams.get("page")) : 1;
-
-        prevButton.addEventListener("click", function () {
-            if (currentPage > 1) {
-                navigateChannel(url.origin + url.pathname, currentPage - 1);
-                log.console(url.origin + url.pathname)
-            } else {
-                prevButton.classList.add("disabled");
-            }
-        });
-
-        nextButton.addEventListener("click", function () {
-            navigateChannel(url.origin + url.pathname, currentPage + 1);
-        });
-    });
-    function navigateChannel(url, page) {
-        const searchParams = new URLSearchParams(window.location.search);
-        const dbQuery = searchParams.get('db');
-        const searchQuery = searchParams.get('q');
-        page = parseInt(page) || 1;
-
-        let newUrl = url;
-        if (dbQuery !== null) {
-            newUrl += `?db=${dbQuery}`;
-            newUrl += page > 1 ? `&page=${page}` : '';
-        } else if (searchQuery !== null) {
-            newUrl += `?q=${searchQuery}`;
-            newUrl += page > 1 ? `&page=${page}` : '';
-        } else {
-            newUrl += page > 1 ? `?page=${page}` : '';
-        }
-
-        window.location.href = newUrl;
-    }
-</script>
 
 </html>

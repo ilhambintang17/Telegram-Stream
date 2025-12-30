@@ -1,316 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png" type="image/x-icon">
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
-        type="image/x-icon">
-    <title>Surf-TG: Chat- <!-- Title --></title>
-    <!-- Standard Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/js/SurfTG.js"></script>
-    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Surf-TG - Files</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6467f2",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101122",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --accent: #e50914;
-            --accent-hover: #ff1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --card-glass: rgba(18, 18, 26, 0.6);
-            --card-hover: rgba(255, 255, 255, 0.1);
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            padding-bottom: 60px;
-        }
-
-        .navbar {
-            background: rgba(10, 10, 15, 0.8) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 15px 0;
-        }
-
-        .navbar-brand img {
-            filter: drop-shadow(0 0 5px rgba(229, 9, 20, 0.5));
-        }
-
-        .card-header {
-            color: var(--text-primary);
-            font-weight: 600;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: transparent;
-        }
-
-        /* Search Bar */
-        .form-control {
-            background: var(--bg-secondary);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--text-primary);
-            border-radius: 50px;
-            padding: 10px 20px;
-        }
-
-        .form-control:focus {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.25);
-        }
-
-        /* File Cards */
-        .card {
-            background: var(--card-glass);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            background: var(--card-hover);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-        }
-
-        .card-img-top {
-            height: 180px;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .card:hover .card-img-top {
-            transform: scale(1.1);
-        }
-
-        .card-body {
-            padding: 1rem;
-        }
-
-        .card-title {
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: var(--text-primary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Pagination */
-        .page-link {
-            background: var(--bg-secondary);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-        }
-
-        .page-link:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        /* Modal */
-        .modal-content {
-            background: #1a1a24;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-header,
-        .modal-footer {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
+        /* Custom scrollbar for webkit */
         ::-webkit-scrollbar {
             width: 8px;
         }
 
+        ::-webkit-scrollbar-track {
+            background: #111118;
+        }
+
         ::-webkit-scrollbar-thumb {
-            background: #333;
+            background: #282839;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
+            background: #6467f2;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-header {
+            background: rgba(16, 17, 34, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body>
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col selection:bg-primary selection:text-white">
+    <!-- Background Gradient Spotlights -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] opacity-40">
+        </div>
+        <div
+            class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] opacity-30">
+        </div>
+    </div>
+    <!-- Navigation Bar -->
+    <header class="glass-header sticky top-0 z-40 w-full">
+        <div class="px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto h-16 flex items-center justify-between">
+            <!-- Logo Area -->
+            <div class="flex items-center gap-3">
+                <div class="text-primary p-1.5 bg-primary/10 rounded-lg">
+                    <span class="material-symbols-outlined !text-[28px]">waves</span>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-white">Surf-TG</h1>
+            </div>
+            <!-- Right Actions -->
+            <div class="flex items-center gap-6">
 
-    <div class="admin-only modal fade" id="sendFileModal" aria-labelledby="sendFileModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form action="/send" method="post" id="sendPopupForm">
-                        <input type="hidden" id="chatId" name="chatId" value="<!-- Chat_id -->">
-                        <input type="hidden" id="selectedIds" name="selectedIds">
-                        <label for="folderSearch" class="form-label">Search Folder:</label>
-                        <input type="text" class="form-control mb-3" id="folderSearch" name="folderSearch">
-                        <select class="form-select bg-dark text-white border-secondary mb-3"
-                            id="folderDropdown"></select>
-                        <input type="hidden" id="folderId" name="folderId">
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary" onclick="submitSendForm()" id="sendButton"
-                                disabled>Submit</button>
-                        </div>
-                    </form>
+                <div class="h-6 w-px bg-white/10"></div>
+                <div class="flex items-center gap-3">
+                    <a href="/logout"
+                        class="ml-2 flex items-center justify-center size-9 rounded-lg bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-slate-400 transition-colors"
+                        title="Logout">
+                        <span class="material-symbols-outlined !text-[20px]">logout</span>
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid container">
-            <a class="navbar-brand" href="/">
-                <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="40">
-            </a>
-            <div class="d-flex gap-2">
-                <form action="/reload" method="get" role="reload" class="admin-only">
-                    <button type="submit" class="btn btn-secondary btn-sm" name="chatId" value="<!-- Chat_id -->">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
+    </header>
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        <!-- Page Header & Controls -->
+        <div class="flex flex-col lg:flex-row gap-6 lg:items-end justify-between">
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-primary font-medium text-sm">
+                    <span class="material-symbols-outlined !text-[18px]">folder_copy</span>
+                    <span><a href="/" class="hover:underline">Channels</a> / Files</span>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-sm">Files</h2>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <!-- Search Bar -->
+                <form action="/search/<!-- Chat_id -->" method="post" class="relative group flex-1 sm:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span
+                            class="material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">search</span>
+                    </div>
+                    <input
+                        class="block w-full rounded-xl border-0 bg-white/5 py-2.5 pl-10 pr-4 text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 transition-all hover:bg-white/10"
+                        placeholder="Search videos..." type="text" name="query" />
                 </form>
-                <form id="signoutForm" action="/logout" method="post" class="d-flex" role="logout">
-                    <button type="submit" class="btn btn-secondary btn-sm">
-                        <i class="bi bi-box-arrow-left"></i> Logout
-                    </button>
-                </form>
+                <!-- Action Buttons -->
+                <a href="."
+                    class="flex items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 hover:bg-white/10 transition-all active:scale-95">
+                    <span class="material-symbols-outlined !text-[20px]">refresh</span>
+                    <span class="hidden sm:inline">Reload</span>
+                </a>
             </div>
         </div>
-    </nav>
-
-    <div class="container d-flex align-items-center justify-content-center mb-4">
-        <div class="card bg-transparent border-0 mx-auto text-center">
-            <h4 class="card-header border-0"><!-- Title --></h4>
-        </div>
-        <button type="button" class="admin-only btn btn-primary btn-sm ms-3" data-bs-toggle="modal"
-            data-bs-target="#sendFileModal" onclick="sendPopupForm()">
-            <i class="bi bi-send-fill me-1"></i> Send
-        </button>
-    </div>
-
-    <div class="container mb-4">
-        <form class="d-flex gap-2" style="max-width: 600px; margin: auto;" action="/search/<!-- Chat_id -->"
-            method="get">
-            <input class="form-control" type="search" placeholder="Search videos..." name="q">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-        </form>
-    </div>
-
-    <div class="container py-2">
-        <!-- Telegram File Grid Card  -->
-        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
-            <!-- Telegram File Card  -->
+        <!-- Video Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             <!-- Print -->
         </div>
-    </div>
-
-    <div class="container d-flex align-items-center justify-content-center mt-4">
-        <ul class="pagination">
-            <li class="page-item">
-                <a class="page-link rounded-start-pill px-4" id="prevButton" href="#">Previous</a>
-            </li>
-            <li class="page-item">
-                <a class="page-link rounded-end-pill px-4" id="nextButton" href="#">Next</a>
-            </li>
-        </ul>
-    </div>
-
-    <footer class="text-center text-muted py-4"></footer>
-
+        <!-- Pagination -->
+        <div class="flex items-center justify-center pt-8 pb-12">
+            <div class="flex items-center gap-2 rounded-full glass-panel px-4 py-2">
+                <!-- Prev -->
+                <!-- Next -->
+            </div>
+        </div>
+    </main>
 </body>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const prevButton = document.getElementById("prevButton");
-        const nextButton = document.getElementById("nextButton");
-
-        const url = new URL(window.location.href);
-        const chatId = url.pathname.match(/\/channel\/(-?\d+)/) ? url.pathname.match(/\/channel\/(-?\d+)/)[1] : null;
-        const currentPage = url.searchParams.get("page") ? parseInt(url.searchParams.get("page")) : 1;
-
-        prevButton.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (currentPage > 1) {
-                navigateChannel(url.origin + url.pathname, currentPage - 1);
-            }
-        });
-
-        nextButton.addEventListener("click", function (e) {
-            e.preventDefault();
-            navigateChannel(url.origin + url.pathname, currentPage + 1);
-        });
-
-        if (currentPage <= 1) prevButton.classList.add("disabled");
-    });
-
-    function navigateChannel(url, page) {
-        const match = url.match(/\/(channel|search)\/(-?\d+)/);
-        const chatId = match ? match[2] : null;
-
-        if (!chatId) {
-            alert("Invalid channel URL.");
-            return;
-        }
-
-        const searchParams = new URLSearchParams(window.location.search);
-        const searchQuery = searchParams.get('q');
-        page = parseInt(page) || 1;
-
-        let newUrl = url;
-        if (searchQuery || page > 1) {
-            newUrl += searchQuery ? `?q=${searchQuery}` : '';
-            newUrl += page > 1 ? `${searchQuery ? '&' : '?'}page=${page}` : '';
-        }
-
-        window.location.href = newUrl;
-    }
-</script>
 
 </html>
