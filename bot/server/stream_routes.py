@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import math
@@ -366,6 +367,9 @@ async def stream_handler(request: web.Request):
         raise web.HTTPNotFound(text=e.message) from e
     except (AttributeError, BadStatusLine, ConnectionResetError):
         pass
+    except asyncio.CancelledError:
+        # Client disconnected - expected behavior for video seeking
+        pass
     except Exception as e:
         logging.critical(e.with_traceback(None))
         raise web.HTTPInternalServerError(text=str(e))
@@ -415,20 +419,6 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             headers={"Content-Range": f"bytes */{file_size}"},
         )
 
-    chunk_size = 1024 * 1024
-    until_bytes = min(until_bytes, file_size - 1)
-
-    offset = from_bytes - (from_bytes % chunk_size)
-    first_part_cut = from_bytes - offset
-    last_part_cut = until_bytes % chunk_size + 1
-
-    req_length = until_bytes - from_bytes + 1
-    part_count = math.ceil(until_bytes / chunk_size) - \
-        math.floor(offset / chunk_size)
-    body = tg_connect.yield_file(
-        file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
-    )
-
     mime_type = file_id.mime_type
     file_name = file_id.file_name
     disposition = "attachment"
@@ -446,6 +436,25 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             mime_type = "application/octet-stream"
             file_name = f"{secrets.token_hex(2)}.unknown"
 
+    # Dynamic chunk size: 2MB for video for faster throughput, 1MB for others
+    if mime_type and isinstance(mime_type, str) and mime_type.startswith('video/'):
+        chunk_size = 2 * 1024 * 1024  # 2MB for videos
+    else:
+        chunk_size = 1024 * 1024  # 1MB for other files
+
+    until_bytes = min(until_bytes, file_size - 1)
+
+    offset = from_bytes - (from_bytes % chunk_size)
+    first_part_cut = from_bytes - offset
+    last_part_cut = until_bytes % chunk_size + 1
+
+    req_length = until_bytes - from_bytes + 1
+    part_count = math.ceil(until_bytes / chunk_size) - \
+        math.floor(offset / chunk_size)
+    body = tg_connect.yield_file(
+        file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
+    )
+
     return web.Response(
         status=206 if range_header else 200,
         body=body,
@@ -455,5 +464,8 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             "Content-Length": str(req_length),
             "Content-Disposition": f'{disposition}; filename="{file_name}"',
             "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=31536000",
+            "Connection": "keep-alive",
+            "X-Content-Type-Options": "nosniff",
         },
     )

@@ -63,8 +63,14 @@ class ByteStreamer:
                     )
         except (TimeoutError, AttributeError):
             pass
+        except asyncio.CancelledError:
+            # Client disconnected during streaming - expected for video seeking/scrubbing
+            logging.debug(f"Client disconnected during streaming (client {index})")
+        except ConnectionResetError:
+            # Connection reset by client - expected when user navigates away
+            logging.debug(f"Connection reset by client (client {index})")
         finally:
-            logging.debug("Finished yielding file with {current_part} parts.")
+            logging.debug(f"Finished yielding file with {current_part} parts.")
             work_loads[index] -= 1
 
     async def generate_media_session(self, client: Client, file_id: FileId) -> Session:
