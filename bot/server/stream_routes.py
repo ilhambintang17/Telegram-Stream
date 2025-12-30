@@ -187,10 +187,14 @@ async def reload_route(request):
     chat_id = request.query.get('chatId', '')
     if chat_id == 'home':
         rm_cache()
-        return web.HTTPFound('/')
+        response = web.HTTPFound('/')
     else:
         rm_cache(f"-100{chat_id}")
-        return web.HTTPFound(f'/channel/{chat_id}')
+        response = web.HTTPFound(f'/channel/{chat_id}')
+    
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 
 @routes.post('/config')
