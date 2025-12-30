@@ -15,10 +15,10 @@ basicConfig(
 )
 load_dotenv('config.env', override=True)
 
-UPSTREAM_REPO = getenv('UPSTREAM_REPO', "https://github.com/weebzone/Surf-TG")
+UPSTREAM_REPO = getenv('UPSTREAM_REPO', "")  # Disabled by default
 UPSTREAM_BRANCH = getenv('UPSTREAM_BRANCH', "main")
 
-if UPSTREAM_REPO is not None:
+if UPSTREAM_REPO:
     if opath.exists('.git'):
         srun(["rm", "-rf", ".git"])
         
@@ -35,3 +35,5 @@ if UPSTREAM_REPO is not None:
         log_info('Successfully updated with latest commit from UPSTREAM_REPO')
     else:
         log_error('Something went wrong while updating, check UPSTREAM_REPO if valid or not!')
+else:
+    log_info('Auto-update disabled. Using deployed code.')
