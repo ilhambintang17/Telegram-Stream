@@ -244,7 +244,7 @@ async def playlist_route(request):
             dhtml = await post_playlist(playlists)
             dphtml = await posts_db_file(files)
             is_admin = username == Telegram.ADMIN_USERNAME
-            return web.Response(text=await render_page(parent_id, None, route='playlist', playlist=dhtml, database=dphtml, msg=text, is_admin=is_admin), content_type='text/html')
+            return web.Response(text=await render_page(parent_id, None, route='playlist', playlist=dhtml, database=dphtml, msg=text, is_admin=is_admin, page=int(page)), content_type='text/html')
         except Exception as e:
             logging.critical(e.with_traceback(None))
             raise web.HTTPInternalServerError(text=str(e)) from e
@@ -266,7 +266,7 @@ async def dbsearch_route(request):
             dphtml = await posts_db_file(files)
             name = await db.get_info(parent)
             text = f"{name} - {query}"
-            return web.Response(text=await render_page(parent, None, route='playlist', database=dphtml, msg=text, is_admin=is_admin), content_type='text/html')
+            return web.Response(text=await render_page(parent, None, route='playlist', database=dphtml, msg=text, is_admin=is_admin, page=int(page)), content_type='text/html')
         except Exception as e:
             logging.critical(e.with_traceback(None))
             raise web.HTTPInternalServerError(text=str(e)) from e
@@ -287,7 +287,7 @@ async def channel_route(request):
             posts = await get_files(chat_id, page=page)
             phtml = await posts_file(posts, chat_id)
             chat = await StreamBot.get_chat(int(chat_id))
-            return web.Response(text=await render_page(None, None, route='index', html=phtml, msg=chat.title, chat_id=chat_id.replace("-100", ""), is_admin=is_admin), content_type='text/html')
+            return web.Response(text=await render_page(None, None, route='index', html=phtml, msg=chat.title, chat_id=chat_id.replace("-100", ""), is_admin=is_admin, page=int(page)), content_type='text/html')
         except Exception as e:
             logging.critical(e.with_traceback(None))
             raise web.HTTPInternalServerError(text=str(e)) from e
@@ -310,7 +310,7 @@ async def search_route(request):
             phtml = await posts_file(posts, chat_id)
             chat = await StreamBot.get_chat(int(chat_id))
             text = f"{chat.title} - {query}"
-            return web.Response(text=await render_page(None, None, route='index', html=phtml, msg=text, chat_id=chat_id.replace("-100", ""), is_admin=is_admin), content_type='text/html')
+            return web.Response(text=await render_page(None, None, route='index', html=phtml, msg=text, chat_id=chat_id.replace("-100", ""), is_admin=is_admin, page=int(page)), content_type='text/html')
         except Exception as e:
             logging.critical(e.with_traceback(None))
             raise web.HTTPInternalServerError(text=str(e)) from e
