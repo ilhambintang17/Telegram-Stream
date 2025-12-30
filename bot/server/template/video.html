@@ -294,7 +294,14 @@
             videoPlayer.src = streamUrl;
 
             document.getElementById("download_link").href = streamUrl;
-            document.getElementById("get_file_btn").href = `/dl/${chatId}${searchParams}`; // Assuming /dl/ route pattern or similar
+
+            // Fix Get File Button
+            const getFileBtn = document.getElementById("get_file_btn");
+            if (getFileBtn) getFileBtn.href = streamUrl;
+
+            // Fix Direct Download Button
+            const directDlBtn = document.getElementById("direct_dl_btn");
+            if (directDlBtn) directDlBtn.href = streamUrl;
 
             let mxPlayerLink = "intent:" + streamUrl + "#Intent;package=com.mxtech.videoplayer.ad;S.title=" + encodeURIComponent(rawFilename) + ";end";
             document.getElementById("mx_player").href = mxPlayerLink;
