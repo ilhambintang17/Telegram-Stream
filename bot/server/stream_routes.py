@@ -322,10 +322,12 @@ async def search_route(request):
 @routes.get('/api/thumb/{chat_id}', allow_head=True)
 async def get_thumbnail(request):
     chat_id = request.match_info['chat_id']
+    if not chat_id.startswith("-100"):
+        chat_id = f"-100{chat_id}"
     if message_id := request.query.get('id'):
-        img = await get_image(chat_id, message_id)
+        img = await get_image(int(chat_id), int(message_id))
     else:
-        img = await get_image(chat_id, None)
+        img = await get_image(int(chat_id), None)
     response = web.FileResponse(img)
     response.content_type = "image/jpeg"
     return response
