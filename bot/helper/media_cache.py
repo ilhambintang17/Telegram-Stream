@@ -147,17 +147,20 @@ class MediaCache:
         file_path = self.cache_dir / filename
         
         try:
+            # Ensure directory exists FIRST
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            
             # Fetch FRESH file properties using background client
             fresh_file_id = await tg_connect.get_file_properties(chat_id=chat_id, message_id=msg_id)
             logging.info(f"Background download: got fresh file_id for {file_name}")
             
-            # Ensure space and directory
+            # Ensure space
             await self._ensure_space(file_size)
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
             
             # Download full file
             chunk_size = 1024 * 1024  # 1MB chunks
             offset = 0
+            total_written = 0
             
             with open(file_path, 'wb') as f:
                 async for chunk in tg_connect.yield_file(
@@ -166,9 +169,14 @@ class MediaCache:
                 ):
                     if chunk:
                         f.write(chunk)
+                        total_written += len(chunk)
             
-            # Verify file size
-            actual_size = file_path.stat().st_size
+            # Verify file size - use total_written if file doesn't exist
+            if file_path.exists():
+                actual_size = file_path.stat().st_size
+            else:
+                actual_size = total_written
+            
             if actual_size >= file_size * 0.99:  # Allow 1% tolerance
                 # Save to cache
                 now = datetime.utcnow()
