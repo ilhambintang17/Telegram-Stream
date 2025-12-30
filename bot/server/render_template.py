@@ -137,21 +137,34 @@ async def render_page(id, secure_hash, is_admin=False, html='', playlist='', dat
                 from bot.helper.search import search 
                 search_results = await search(chat_id, series_name, 1)
                 
-                parts = []
-                seen_ids = set()
+                # Improved Deduplication: Group by Part Number
+                all_parts = []
                 for post in search_results:
-                    # Deduplicate by msg_id
-                    if post['msg_id'] in seen_ids:
-                        continue
-                        
                     # Verify it matches the series name and has a part number
                     p_match = re.search(r'(.*)[ ._]part(\d+)', post['title'], re.IGNORECASE)
                     if p_match and p_match.group(1).strip().lower() == series_name.lower():
-                        seen_ids.add(post['msg_id'])
-                        parts.append({
-                            **post,
-                            'part_number': int(p_match.group(2))
-                        })
+                        post['part_number'] = int(p_match.group(2))
+                        all_parts.append(post)
+                
+                # Filter duplicates - prefer the one currently playing if it exists
+                parts_map = {}
+                for post in all_parts:
+                    p_num = post['part_number']
+                    if p_num not in parts_map:
+                        parts_map[p_num] = []
+                    parts_map[p_num].append(post)
+                
+                parts = []
+                current_msg_id = str(id)
+                
+                for p_num, posts in parts_map.items():
+                    selected_post = posts[0] # Default to first
+                    # If any post in this group is the current one, force select it
+                    for p in posts:
+                        if str(p['msg_id']) == current_msg_id:
+                            selected_post = p
+                            break
+                    parts.append(selected_post)
                 
                 # Sort by part number
                 parts.sort(key=lambda x: x['part_number'])
