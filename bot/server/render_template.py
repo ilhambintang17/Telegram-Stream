@@ -176,10 +176,16 @@ async def render_page(id, secure_hash, is_admin=False, html='', playlist='', dat
                         active_class = "bg-primary/20 ring-1 ring-primary/50" if is_active else ""
                         active_text = "text-primary" if is_active else "text-white"
                         
+                        # Thumbnail URL
+                        thumb_url = f"/api/thumb/{str(chat_id).replace('-100', '')}?id={part['msg_id']}"
+                        
                         list_items += f"""
-                        <a href="/watch/{str(chat_id).replace("-100", "")}?id={part['msg_id']}&hash={part['hash']}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors {active_class}">
-                           <div class="size-8 rounded flex items-center justify-center bg-white/5 text-xs text-gray-400 font-bold shrink-0">
-                               {part['part_number']}
+                        <a href="/watch/{str(chat_id).replace("-100", "")}?id={part['msg_id']}&hash={part['hash']}" class="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors {active_class}">
+                           <div class="relative w-16 h-10 shrink-0 rounded overflow-hidden bg-white/5 border border-white/10 group-hover:border-primary/50 transition-colors">
+                               <img src="{thumb_url}" class="w-full h-full object-cover" loading="lazy">
+                               <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-xs font-bold text-white backdrop-blur-[1px]">
+                                   {part['part_number']}
+                               </div>
                            </div>
                            <div class="overflow-hidden">
                                <p class="text-sm font-medium {active_text} truncate" title="{part['title']}">{part['title']}</p>
