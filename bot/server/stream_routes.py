@@ -405,7 +405,7 @@ async def stream_from_cache(request: web.Request, cached_path, file_size: int, m
     await media_cache.record_access(chat_id, msg_id, secure_hash)
     
     async def file_sender():
-        chunk_size = 2 * 1024 * 1024  # 2MB chunks
+        chunk_size = 1024 * 1024  # 1MB chunks (Telegram max limit)
         with open(cached_path, 'rb') as f:
             f.seek(from_bytes)
             remaining = req_length
@@ -503,7 +503,7 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
 
     # Dynamic chunk size: 2MB for video for faster throughput, 1MB for others
     if mime_type and isinstance(mime_type, str) and mime_type.startswith('video/'):
-        chunk_size = 2 * 1024 * 1024  # 2MB for videos
+        chunk_size = 1024 * 1024  # 1MB (Telegram max limit)
     else:
         chunk_size = 1024 * 1024  # 1MB for other files
 
