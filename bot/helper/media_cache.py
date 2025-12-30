@@ -257,11 +257,19 @@ class MediaCache:
         cache_key = self._generate_cache_key(chat_id, msg_id, secure_hash)
         doc = self.collection.find_one({"cache_key": cache_key})
         
-        if doc and os.path.exists(doc["file_path"]):
-            return Path(doc["file_path"])
-        elif doc:
-            # File missing from disk, clean up DB entry
-            self.collection.delete_one({"cache_key": cache_key})
+        logging.debug(f"Cache lookup: key={cache_key}, found_in_db={doc is not None}")
+        
+        if doc:
+            file_path = doc.get("file_path")
+            file_exists = os.path.exists(file_path) if file_path else False
+            logging.info(f"Cache check: {file_path}, exists={file_exists}")
+            
+            if file_exists:
+                return Path(file_path)
+            else:
+                # File missing from disk, clean up DB entry
+                logging.warning(f"Cache file missing, cleaning DB: {cache_key}")
+                self.collection.delete_one({"cache_key": cache_key})
         
         return None
     

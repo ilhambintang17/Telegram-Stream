@@ -539,78 +539,15 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
     part_count = math.ceil(until_bytes / chunk_size) - \
         math.floor(offset / chunk_size)
     
-    # Prepare cache file path for streaming write (only for full file requests)
-    cache_file_path = None
-    cache_file_handle = None
-    
+
     # Debug: Log range request info
     logging.info(f"Request: from={from_bytes}, until={until_bytes}, size={file_size}, mime={mime_type}")
-    
-    should_cache = (
-        media_cache.enabled and 
-        from_bytes == 0 and 
-        until_bytes == file_size - 1 and
-        media_cache._is_cacheable(mime_type, file_name)
-    )
-    
-    logging.info(f"Cache decision: should_cache={should_cache}, enabled={media_cache.enabled}, is_full_request={from_bytes == 0 and until_bytes == file_size - 1}")
-    
-    if should_cache:
-        # Ensure cache directory exists
-        if media_cache.cache_dir:
-            media_cache.cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        cache_file_path = await media_cache.add_to_cache_streaming(
-            chat_id, id, secure_hash, mime_type, file_name
-        )
-        logging.info(f"Cache file path: {cache_file_path}")
-        if cache_file_path:
-            try:
-                await media_cache._ensure_space(file_size)
-                cache_file_handle = open(cache_file_path, 'wb')
-                logging.info(f"Cache file opened for writing: {cache_file_path}")
-            except Exception as e:
-                logging.error(f"Cache file open error: {e}")
-                cache_file_path = None
-    
-    async def body_with_cache():
-        """Yield chunks and write to cache if applicable."""
-        total_written = 0
-        try:
-            async for chunk in tg_connect.yield_file(
-                file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
-            ):
-                if cache_file_handle and chunk:
-                    try:
-                        cache_file_handle.write(chunk)
-                        total_written += len(chunk)
-                    except Exception as e:
-                        logging.error(f"Cache write error: {e}")
-                yield chunk
-        finally:
-            if cache_file_handle:
-                try:
-                    cache_file_handle.close()
-                    # Finalize cache entry if full file was written
-                    if total_written == file_size:
-                        await media_cache.finalize_cache(
-                            chat_id, id, secure_hash, cache_file_path,
-                            total_written, mime_type, file_name
-                        )
-                    else:
-                        # Incomplete download, remove partial file
-                        if cache_file_path and cache_file_path.exists():
-                            cache_file_path.unlink()
-                except Exception as e:
-                    logging.error(f"Cache finalize error: {e}")
-    
-    body = body_with_cache() if should_cache and cache_file_path else tg_connect.yield_file(
-        file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
-    )
 
     return web.Response(
         status=206 if range_header else 200,
-        body=body,
+        body=tg_connect.yield_file(
+            file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
+        ),
         headers={
             "Content-Type": f"{mime_type}",
             "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
