@@ -1,8 +1,44 @@
-<div align="center">
-    <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo.png" alt="Surf_TG" style="height:20%; width:50%;"><br>
-    <i>Python Web App which Indexes a Your Telegram Channel and Serves its Files for Download and Stream.</i>
-</div>
+<h1 align="center">Surf-TG (v2.0 Revision)</h1>
 
+<p align="center">
+  <a href="https://github.com/weebzone/Surf-TG">
+    <img src="https://socialify.git.ci/weebzone/Surf-TG/image?description=1&font=Raleway&forks=1&issues=1&language=1&owner=1&pattern= Circuit Board&pulls=1&stargazers=1&theme=Dark" alt="Surf-TG" width="640" height="320" />
+  </a>
+</p>
+
+<p align="center">
+    A High-Performance Telegram File Streaming & Direct Download Bot with Premium Web UI.
+</p>
+
+## What's New (v2.0) 🌟
+
+This project has been massively overhauled with a focus on **User Experience** and **Reliability**:
+
+*   **🎨 Premium Glassmorphism UI**: 
+    *   Modern, Dark-themed interface using **TailwindCSS**.
+    *   Fully responsive: **Full-width video player** on mobile, optimized layouts for desktop.
+    *   Beautiful **Series Playlists** with thumbnails and part grouping.
+
+*   **📺 Advanced Video Player**: 
+    *   Integrated **Plyr.js** for a generic, powerful playback experience.
+    *   **Custom Skip Controls**: `-10m`, `-1m`, `-10s`, `+10s`, `+1m`, `+10m` buttons for precise navigation.
+    *   **Smart Thumbnails**: Automatically fetches and displays video thumbnails from Telegram.
+    *   **External Players**: One-click deep links to **MX Player** and **VLC**.
+
+*   **⚡ Core Performance & Reliability**:
+    *   **Anti-FloodWait System**: Implemented a **Multi-Client Rotation System**. If a bot account hits Telegram's FloodWait limit, the system *automatically* switches to the next available client (`MULTI_TOKEN`) to continue the download seamlessly.
+    *   **Direct Download**: Robust download system that serves files directly from the server (checking cache first) or streams from Telegram.
+    *   **Pagination**: Smoothly browse channels with thousands of files using page-based navigation.
+    *   **Duplicate Handling**: Smartly filters duplicate usages of the same video in series lists.
+
+## Technologies Used 🛠️
+
+*   **Backend**: Python (Aiohttp, Flask-style routing), Pyrogram (Telegram Client).
+*   **Database**: MongoDB (Metadata & Session management).
+*   **Frontend**: HTML5, Vanilla CSS, **TailwindCSS** (CDN), **Plyr.js**.
+*   **Hosting**: Heroku, VPS, or Docker.
+
+---
 
 <div align="center" >
 
@@ -207,7 +243,31 @@ sudo docker ps
 sudo docker stop id
 ```
 
-### Deploy on Heroku :
+### Deploy on Heroku (CLI/Git) :
+
+1.  Clone this repository:
+    ```sh
+    git clone https://github.com/ilhambintang17/Surf-TG
+    cd Surf-TG
+    ```
+2.  Login to Heroku:
+    ```sh
+    heroku login
+    ```
+3.  Create App:
+    ```sh
+    heroku create your-app-name
+    ```
+4.  Add Buildpacks (if needed, usually Python is auto-detected):
+    ```sh
+    heroku buildpacks:set heroku/python
+    ```
+5.  Deploy:
+    ```sh
+    git push heroku main
+    ```
+
+### Deploy on Heroku (One-Click) :
 
 Easily Deploy to Heroku use this [Colab Tool](https://colab.research.google.com/drive/1R5YBUg8TINgxAm4Hvejjy0VgsKGmb8vV)
 
