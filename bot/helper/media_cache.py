@@ -125,7 +125,7 @@ class MediaCache:
         chat_id: int,
         msg_id: int,
         secure_hash: str,
-        file_id,
+        file_id,  # Original file_id, used as fallback info
         file_size: int,
         mime_type: str,
         file_name: str,
@@ -147,6 +147,10 @@ class MediaCache:
         file_path = self.cache_dir / filename
         
         try:
+            # Fetch FRESH file properties using background client
+            fresh_file_id = await tg_connect.get_file_properties(chat_id=chat_id, message_id=msg_id)
+            logging.info(f"Background download: got fresh file_id for {file_name}")
+            
             # Ensure space and directory
             await self._ensure_space(file_size)
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -157,7 +161,7 @@ class MediaCache:
             
             with open(file_path, 'wb') as f:
                 async for chunk in tg_connect.yield_file(
-                    file_id, client_index, offset, 0, file_size % chunk_size or chunk_size,
+                    fresh_file_id, client_index, offset, 0, file_size % chunk_size or chunk_size,
                     (file_size + chunk_size - 1) // chunk_size, chunk_size
                 ):
                     if chunk:
