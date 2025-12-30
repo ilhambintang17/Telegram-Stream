@@ -520,6 +520,10 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
     # Prepare cache file path for streaming write (only for full file requests)
     cache_file_path = None
     cache_file_handle = None
+    
+    # Debug: Log range request info
+    logging.info(f"Request: from={from_bytes}, until={until_bytes}, size={file_size}, mime={mime_type}")
+    
     should_cache = (
         media_cache.enabled and 
         from_bytes == 0 and 
@@ -527,14 +531,22 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
         media_cache._is_cacheable(mime_type, file_name)
     )
     
+    logging.info(f"Cache decision: should_cache={should_cache}, enabled={media_cache.enabled}, is_full_request={from_bytes == 0 and until_bytes == file_size - 1}")
+    
     if should_cache:
+        # Ensure cache directory exists
+        if media_cache.cache_dir:
+            media_cache.cache_dir.mkdir(parents=True, exist_ok=True)
+        
         cache_file_path = await media_cache.add_to_cache_streaming(
             chat_id, id, secure_hash, mime_type, file_name
         )
+        logging.info(f"Cache file path: {cache_file_path}")
         if cache_file_path:
             try:
                 await media_cache._ensure_space(file_size)
                 cache_file_handle = open(cache_file_path, 'wb')
+                logging.info(f"Cache file opened for writing: {cache_file_path}")
             except Exception as e:
                 logging.error(f"Cache file open error: {e}")
                 cache_file_path = None
