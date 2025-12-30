@@ -56,7 +56,7 @@ async def login_route(request):
     return web.Response(text=await render_page(None, None, route='login', msg=error_message), content_type='text/html')
 
 
-@routes.post('/logout')
+@routes.get('/logout')
 async def logout_route(request):
     session = await get_session(request)
     session.pop('user', None)

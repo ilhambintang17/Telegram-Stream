@@ -56,25 +56,36 @@ async def get_files(chat_id, page=1):
     save_cache(chat_id, {"posts": posts}, page)
     return posts
 
-async def posts_file(posts, chat_id):
     phtml = """
-            <div class="col">
+    <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 group">
+        <div class="relative aspect-video bg-gray-900">
+             <img src="{img}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="{title}">
+             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+             
+             <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-medium text-white">
+                {size}
+             </div>
+        </div>
+        
+        <div class="p-4">
+            <h3 class="text-white font-semibold text-sm line-clamp-2 leading-snug mb-2 min-h-[2.5rem]" title="{title}">{title}</h3>
+            
+            <div class="flex items-center justify-between gap-2 mt-3">
+                <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] uppercase font-bold tracking-wider border border-primary/20">
+                    {type}
+                </span>
                 
-                    <div class="card text-white bg-primary mb-3">
-                        <input type="checkbox" class="admin-only form-check-input position-absolute top-0 end-0 m-2"
-                            onchange="checkSendButton()" id="selectCheckbox"
-                            data-id="{id}|{hash}|{title}|{size}|{type}|{img}">
-                        <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/loading.gif" class="lzy_img card-img-top rounded-top"
-                            data-src="{img}" alt="{title}">
-                        <a href="/watch/{chat_id}?id={id}&hash={hash}">
-                        <div class="card-body p-1">
-                            <h6 class="card-title">{title}</h6>
-                            <span class="badge bg-warning">{type}</span>
-                            <span class="badge bg-info">{size}</span>
-                        </div>
-                        </a>
-                    </div>
-                
+                <a href="/watch/{chat_id}?id={id}&hash={hash}" class="flex items-center gap-1 text-xs font-medium text-gray-400 group-hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">play_circle</span>
+                    Play
+                </a>
             </div>
+            
+            <!-- Admin Checkbox (Hidden via CSS if not admin) -->
+            <input type="checkbox" class="admin-only form-checkbox rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary absolute top-2 right-2 z-10 w-5 h-5"
+                onchange="checkSendButton()" id="selectCheckbox"
+                data-id="{id}|{hash}|{title}|{size}|{type}|{img}">
+        </div>
+    </div>
 """
     return ''.join(phtml.format(chat_id=str(chat_id).replace("-100", ""), id=post["msg_id"], img=f"/api/thumb/{chat_id}?id={post['msg_id']}", title=post["title"], hash=post["hash"], size=post['size'], type=post['type']) for post in posts)

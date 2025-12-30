@@ -131,11 +131,16 @@
     <nav class="glass-nav fixed top-0 w-full z-50 h-16">
         <div class="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div class="flex items-center gap-3">
+                <a href="#" onclick="history.back()"
+                    class="flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <span class="material-symbols-outlined text-[24px]">arrow_back</span>
+                </a>
+                <div class="h-6 w-px bg-white/10 hidden sm:block"></div>
                 <div
                     class="size-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary/20">
                     <span class="material-symbols-outlined text-[20px]">movie</span>
                 </div>
-                <h1 class="text-white text-xl font-bold tracking-tight">Surf-TG</h1>
+                <h1 class="text-white text-xl font-bold tracking-tight hidden sm:block">Surf-TG</h1>
             </div>
             <div class="flex items-center gap-2">
                 <a href="/logout"
@@ -166,7 +171,8 @@
                         </div>
                         <div class="flex flex-col gap-1">
                             <h2 class="text-lg sm:text-xl font-bold text-white leading-tight break-all">
-                                <!-- Filename --></h2>
+                                <!-- Filename -->
+                            </h2>
                             <div class="flex items-center gap-2 text-sm text-gray-400 font-medium">
                                 <span class="bg-white/10 px-2 py-0.5 rounded text-xs text-gray-300">File</span>
                                 <span>•</span>
@@ -267,32 +273,35 @@
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let downloadLink = window.location.href.replace("/watch/", "/");
-            let videoPlayer = document.getElementById("player");
-            videoPlayer.src = downloadLink;
+            // Construct the correct stream/download URL: /chat_id/filename?id=...
+            const currentUrl = new URL(window.location.href);
+            const path = currentUrl.pathname; // /watch/chat_id
+            const chatId = path.split('/watch/')[1]; // chat_id
+            const searchParams = currentUrl.search; // ?id=...&hash=...
 
-            document.getElementById("download_link").href = downloadLink;
+            // We need to properly encode the filename for the URL
+            const rawFilename = "<!-- Filename -->";
+            const encodedFilename = encodeURIComponent(rawFilename);
 
-            let mxPlayerLink = "intent:" + downloadLink + "#Intent;package=com.mxtech.videoplayer.ad;S.title=" + encodeURIComponent("<!-- Filename -->") + ";end";
+            // Final Stream URL: /chat_id/filename?params
+            const streamUrl = `${window.location.origin}/${chatId}/${encodedFilename}${searchParams}`;
+
+            const videoPlayer = document.getElementById("player");
+            videoPlayer.src = streamUrl;
+
+            document.getElementById("download_link").href = streamUrl;
+            document.getElementById("get_file_btn").href = `/dl/${chatId}${searchParams}`; // Assuming /dl/ route pattern or similar
+
+            let mxPlayerLink = "intent:" + streamUrl + "#Intent;package=com.mxtech.videoplayer.ad;S.title=" + encodeURIComponent(rawFilename) + ";end";
             document.getElementById("mx_player").href = mxPlayerLink;
 
-            let vlcPlayerLink = "vlc://" + downloadLink;
+            let vlcPlayerLink = "vlc://" + streamUrl;
             document.getElementById("vlc_player").href = vlcPlayerLink;
 
             // Initialize Plyr
             const player = new Plyr('#player', {
                 controls: [
-                    'play-large',
-                    'play',
-                    'progress',
-                    'current-time',
-                    'mute',
-                    'volume',
-                    'captions',
-                    'settings',
-                    'pip',
-                    'airplay',
-                    'fullscreen'
+                    'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
                 ],
                 settings: ['captions', 'quality', 'speed'],
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] }
@@ -300,11 +309,24 @@
         });
 
         function copyLink() {
-            let downloadLink = window.location.href.replace("/watch/", "/");
-            navigator.clipboard.writeText(downloadLink).then(function () {
-                alert('Link copied to clipboard');
+            const currentUrl = new URL(window.location.href);
+            const path = currentUrl.pathname;
+            const chatId = path.split('/watch/')[1];
+            const searchParams = currentUrl.search;
+            const rawFilename = "<!-- Filename -->";
+            const encodedFilename = encodeURIComponent(rawFilename);
+            const streamUrl = `${window.location.origin}/${chatId}/${encodedFilename}${searchParams}`;
+
+            navigator.clipboard.writeText(streamUrl).then(function () {
+                // Show a simple toast or alert
+                const btn = document.querySelector('button[onclick="copyLink()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-outlined text-3xl mb-2 text-green-400">check</span><span class="text-xs font-bold text-gray-300">Copied!</span>';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
             }, function (err) {
-                console.error('Could not copy text: ', err);
+                alert('Failed to copy link');
             });
         }
     </script>
