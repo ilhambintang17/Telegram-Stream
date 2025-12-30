@@ -41,23 +41,37 @@ class MediaCache:
     RECENCY_DECAY_HOURS = 24  # Hours before recency bonus decays
     
     def __init__(self):
-        self.enabled = Telegram.CACHE_ENABLED
-        self.cache_dir = Path(Telegram.CACHE_DIR)
-        self.max_size_bytes = Telegram.CACHE_MAX_SIZE_GB * 1024 * 1024 * 1024
+        self.enabled = False
+        self.cache_dir = None
+        self.max_size_bytes = 0
+        self.collection = None
         
-        # MongoDB connection
-        self.mongo_client = MongoClient(Telegram.DATABASE_URL)
-        self.db = self.mongo_client["surftg"]
-        self.collection = self.db["media_cache"]
-        
-        # Create indexes
-        self.collection.create_index("cache_key", unique=True)
-        self.collection.create_index([("score", ASCENDING)])
-        
-        # Ensure cache directory exists
-        if self.enabled:
+        try:
+            if not Telegram.CACHE_ENABLED:
+                logging.info("Media cache disabled by config")
+                return
+            
+            self.cache_dir = Path(Telegram.CACHE_DIR)
+            self.max_size_bytes = Telegram.CACHE_MAX_SIZE_GB * 1024 * 1024 * 1024
+            
+            # MongoDB connection
+            self.mongo_client = MongoClient(Telegram.DATABASE_URL)
+            self.db = self.mongo_client["surftg"]
+            self.collection = self.db["media_cache"]
+            
+            # Create indexes
+            self.collection.create_index("cache_key", unique=True)
+            self.collection.create_index([("score", ASCENDING)])
+            
+            # Ensure cache directory exists
             self.cache_dir.mkdir(parents=True, exist_ok=True)
+            
+            self.enabled = True
             logging.info(f"Media cache initialized: {self.cache_dir} (max: {Telegram.CACHE_MAX_SIZE_GB}GB)")
+            
+        except Exception as e:
+            logging.error(f"Media cache initialization failed: {e}")
+            self.enabled = False
     
     def _generate_cache_key(self, chat_id: int, msg_id: int, secure_hash: str) -> str:
         """Generate unique cache key for a media file."""
