@@ -481,10 +481,32 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
     # Check if file is cached
     cached_path = media_cache.get_cached_path(chat_id, id, secure_hash)
     if cached_path and cached_path.exists():
+        logging.info(f"Cache HIT: {file_name}")
         return await stream_from_cache(
             request, cached_path, file_size, mime_type, file_name,
             chat_id, id, secure_hash
         )
+    
+    # Not cached - start background download with DIFFERENT client
+    if media_cache.enabled and media_cache._is_cacheable(mime_type, file_name):
+        if not media_cache.is_downloading(chat_id, id, secure_hash):
+            # Pick a different client for background download
+            bg_index = (index + 1) % len(multi_clients)
+            bg_client = multi_clients[bg_index]
+            
+            if bg_client in class_cache:
+                bg_tg_connect = class_cache[bg_client]
+            else:
+                bg_tg_connect = ByteStreamer(bg_client)
+                class_cache[bg_client] = bg_tg_connect
+            
+            # Start background download (non-blocking)
+            await media_cache.start_background_download(
+                chat_id, id, secure_hash, file_id, file_size,
+                mime_type, file_name, bg_tg_connect, bg_index
+            )
+        else:
+            logging.info(f"Download already in progress: {file_name}")
 
     if range_header:
         from_bytes, until_bytes = range_header.replace("bytes=", "").split("-")

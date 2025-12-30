@@ -10,7 +10,7 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Set
 
 from pymongo import MongoClient, ASCENDING
 from bot.config import Telegram
@@ -45,6 +45,7 @@ class MediaCache:
         self.cache_dir = None
         self.max_size_bytes = 0
         self.collection = None
+        self.downloading: Set[str] = set()  # Track files being downloaded
         
         try:
             if not Telegram.CACHE_ENABLED:
@@ -73,6 +74,138 @@ class MediaCache:
             logging.error(f"Media cache initialization failed: {e}")
             self.enabled = False
     
+    def is_downloading(self, chat_id: int, msg_id: int, secure_hash: str) -> bool:
+        """Check if file is currently being downloaded."""
+        cache_key = self._generate_cache_key(chat_id, msg_id, secure_hash)
+        return cache_key in self.downloading
+    
+    async def start_background_download(
+        self,
+        chat_id: int,
+        msg_id: int,
+        secure_hash: str,
+        file_id,
+        file_size: int,
+        mime_type: str,
+        file_name: str,
+        tg_connect,
+        client_index: int
+    ) -> None:
+        """Start background download using separate client."""
+        if not self.enabled:
+            return
+        
+        cache_key = self._generate_cache_key(chat_id, msg_id, secure_hash)
+        
+        # Skip if already downloading or cached
+        if cache_key in self.downloading:
+            logging.debug(f"Already downloading: {file_name}")
+            return
+        
+        if self.is_cached(chat_id, msg_id, secure_hash):
+            logging.debug(f"Already cached: {file_name}")
+            return
+        
+        if not self._is_cacheable(mime_type, file_name):
+            return
+        
+        # Mark as downloading
+        self.downloading.add(cache_key)
+        logging.info(f"Starting background download: {file_name} ({file_size / 1024 / 1024:.1f}MB)")
+        
+        # Start async download task
+        asyncio.create_task(self._download_file(
+            cache_key, chat_id, msg_id, secure_hash, file_id, 
+            file_size, mime_type, file_name, tg_connect, client_index
+        ))
+    
+    async def _download_file(
+        self,
+        cache_key: str,
+        chat_id: int,
+        msg_id: int,
+        secure_hash: str,
+        file_id,
+        file_size: int,
+        mime_type: str,
+        file_name: str,
+        tg_connect,
+        client_index: int
+    ) -> None:
+        """Actually download the file to cache."""
+        # Determine extension
+        if file_name:
+            ext = Path(file_name).suffix.lower()
+        else:
+            ext_map = {
+                'video/mp4': '.mp4', 'video/x-matroska': '.mkv',
+                'video/webm': '.webm', 'audio/mpeg': '.mp3',
+            }
+            ext = ext_map.get(mime_type, '.bin')
+        
+        filename = self._generate_filename(cache_key, ext)
+        file_path = self.cache_dir / filename
+        
+        try:
+            # Ensure space and directory
+            await self._ensure_space(file_size)
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Download full file
+            chunk_size = 1024 * 1024  # 1MB chunks
+            offset = 0
+            
+            with open(file_path, 'wb') as f:
+                async for chunk in tg_connect.yield_file(
+                    file_id, client_index, offset, 0, file_size % chunk_size or chunk_size,
+                    (file_size + chunk_size - 1) // chunk_size, chunk_size
+                ):
+                    if chunk:
+                        f.write(chunk)
+            
+            # Verify file size
+            actual_size = file_path.stat().st_size
+            if actual_size >= file_size * 0.99:  # Allow 1% tolerance
+                # Save to cache
+                now = datetime.utcnow()
+                score = self._calculate_score(1, now)
+                
+                self.collection.update_one(
+                    {"cache_key": cache_key},
+                    {
+                        "$set": {
+                            "cache_key": cache_key,
+                            "file_path": str(file_path),
+                            "file_size": actual_size,
+                            "mime_type": mime_type,
+                            "file_name": file_name,
+                            "access_count": 1,
+                            "last_access": now,
+                            "created_at": now,
+                            "score": score
+                        }
+                    },
+                    upsert=True
+                )
+                logging.info(f"Background download complete: {file_name} ({actual_size / 1024 / 1024:.1f}MB)")
+            else:
+                # Incomplete download
+                logging.warning(f"Incomplete download: {file_name} ({actual_size}/{file_size})")
+                if file_path.exists():
+                    file_path.unlink()
+                    
+        except asyncio.CancelledError:
+            logging.debug(f"Background download cancelled: {file_name}")
+            if file_path.exists():
+                file_path.unlink()
+        except Exception as e:
+            logging.error(f"Background download error: {e}")
+            if file_path.exists():
+                file_path.unlink()
+        finally:
+            # Remove from downloading set
+            self.downloading.discard(cache_key)
+
     def _generate_cache_key(self, chat_id: int, msg_id: int, secure_hash: str) -> str:
         """Generate unique cache key for a media file."""
         return f"{chat_id}:{msg_id}:{secure_hash}"
