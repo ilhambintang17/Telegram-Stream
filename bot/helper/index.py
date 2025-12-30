@@ -56,6 +56,7 @@ async def get_files(chat_id, page=1):
     save_cache(chat_id, {"posts": posts}, page)
     return posts
 
+async def posts_file(posts, chat_id):
     phtml = """
     <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 group">
         <div class="relative aspect-video bg-gray-900">
