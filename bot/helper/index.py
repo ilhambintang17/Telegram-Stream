@@ -58,34 +58,40 @@ async def get_files(chat_id, page=1):
 
 async def posts_file(posts, chat_id):
     phtml = """
-    <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 group">
-        <div class="relative aspect-video bg-gray-900">
-             <img src="{img}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="{title}">
-             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="glass-panel rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group relative">
+        <a href="/watch/{chat_id}?id={id}&hash={hash}" class="block relative aspect-video bg-gray-900 overflow-hidden cursor-pointer">
+             <img src="{img}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="{title}">
              
-             <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-medium text-white">
+             <!-- Gradient Overlay -->
+             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+             
+             <!-- Centered Play Icon on Hover -->
+             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                <div class="w-12 h-12 bg-primary/90 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg shadow-black/50">
+                    <span class="material-symbols-outlined text-white text-3xl ml-0.5">play_arrow</span>
+                </div>
+             </div>
+             
+             <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wide">
                 {size}
              </div>
-        </div>
+        </a>
         
-        <div class="p-4">
-            <h3 class="text-white font-semibold text-sm line-clamp-2 leading-snug mb-2 min-h-[2.5rem]" title="{title}">{title}</h3>
+        <div class="p-3">
+            <a href="/watch/{chat_id}?id={id}&hash={hash}" class="block group-hover:text-primary transition-colors duration-200">
+                <h3 class="text-white font-medium text-sm line-clamp-2 leading-snug min-h-[2.5rem]" title="{title}">{title}</h3>
+            </a>
             
-            <div class="flex items-center justify-between gap-2 mt-3">
-                <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] uppercase font-bold tracking-wider border border-primary/20">
+            <div class="flex items-center justify-between mt-3 px-1">
+                <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-wider border border-white/5">
                     {type}
                 </span>
                 
-                <a href="/watch/{chat_id}?id={id}&hash={hash}" class="flex items-center gap-1 text-xs font-medium text-gray-400 group-hover:text-white transition-colors">
-                    <span class="material-symbols-outlined text-[16px]">play_circle</span>
-                    Play
-                </a>
+                <!-- Admin Checkbox -->
+                <input type="checkbox" class="admin-only form-checkbox rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                    onchange="checkSendButton()" id="selectCheckbox"
+                    data-id="{id}|{hash}|{title}|{size}|{type}|{img}">
             </div>
-            
-            <!-- Admin Checkbox (Hidden via CSS if not admin) -->
-            <input type="checkbox" class="admin-only form-checkbox rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary absolute top-2 right-2 z-10 w-5 h-5"
-                onchange="checkSendButton()" id="selectCheckbox"
-                data-id="{id}|{hash}|{title}|{size}|{type}|{img}">
         </div>
     </div>
 """
