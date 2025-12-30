@@ -151,50 +151,55 @@
         </div>
     </nav>
     <!-- Main Content -->
-    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6">
-        <div class="max-w-6xl mx-auto flex flex-col gap-8">
+    <main class="flex-grow pt-20 pb-12 sm:px-6">
+        <div class="max-w-6xl mx-auto flex flex-col gap-4 sm:gap-8">
             <!-- Video Player Section -->
-            <div class="w-full aspect-video bg-black/40 rounded-xl relative group animate-enter z-10">
-                <video class="w-full h-full rounded-xl" controls="" id="player" playsinline="">
+            <div
+                class="w-full aspect-video bg-black rounded-none sm:rounded-xl relative group animate-enter z-10 overflow-hidden shadow-2xl">
+                <video class="w-full h-full object-contain" controls="" id="player" playsinline="">
                     <!-- The source will be set by JS via window.location -->
                 </video>
+            </div>
+
+            <!-- Content Wrapper with Padding for Mobile -->
+            <div class="px-4 sm:px-0 flex flex-col gap-6">
                 <!-- Seek Controls -->
-                <div class="grid grid-cols-6 gap-2 animate-enter delay-100 mt-4 mb-2">
+                <div class="grid grid-cols-6 gap-1.5 animate-enter delay-100">
                     <button onclick="skip(-600)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">fast_rewind</span>
-                        -10m
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">fast_rewind</span>
+                        <span class="text-[10px] font-medium">-10m</span>
                     </button>
                     <button onclick="skip(-60)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">replay</span>
-                        -1m
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">replay</span>
+                        <span class="text-[10px] font-medium">-1m</span>
                     </button>
                     <button onclick="skip(-10)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">replay_10</span>
-                        -10s
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">replay_10</span>
+                        <span class="text-[10px] font-medium">-10s</span>
                     </button>
                     <button onclick="skip(10)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">forward_10</span>
-                        +10s
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">forward_10</span>
+                        <span class="text-[10px] font-medium">+10s</span>
                     </button>
                     <button onclick="skip(60)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">forward_media</span>
-                        +1m
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">forward_media</span>
+                        <span class="text-[10px] font-medium">+1m</span>
                     </button>
                     <button onclick="skip(600)"
-                        class="glass-button text-[10px] sm:text-xs py-2 px-1 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
+                        class="glass-button py-2 rounded flex flex-col items-center justify-center hover:bg-white/10 text-gray-400 hover:text-white transition-colors group">
                         <span
-                            class="material-symbols-outlined text-lg mb-0.5 group-hover:text-primary transition-colors">fast_forward</span>
-                        +10m
+                            class="material-symbols-outlined text-base mb-0.5 group-hover:text-primary transition-colors">fast_forward</span>
+                        <span class="text-[10px] font-medium">+10m</span>
                     </button>
                 </div>
 
@@ -281,7 +286,7 @@
                             File Options
                         </div>
                         <div class="grid grid-cols-3 gap-3">
-                            <a href="/dl/<!-- ID -->"
+                            <a href="/dl/<!-- ID -->" id="get_file_btn"
                                 class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
                                 <span
                                     class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-blue-400 transition-colors">file_present</span>
@@ -293,16 +298,17 @@
                                     class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-green-400 transition-colors">link</span>
                                 <span class="text-xs font-bold text-gray-300">Copy URL</span>
                             </button>
-                            <button onclick="alert('Reporting feature unavailable')"
+                            <a href="#" id="direct_dl_btn"
                                 class="glass-button flex flex-col items-center justify-center py-4 rounded-lg group">
                                 <span
-                                    class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-red-400 transition-colors">report</span>
-                                <span class="text-xs font-bold text-gray-300">Report</span>
-                            </button>
+                                    class="material-symbols-outlined text-3xl mb-2 text-white group-hover:text-red-400 transition-colors">download</span>
+                                <span class="text-xs font-bold text-gray-300">Direct DL</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     </main>
     <!-- Simple Footer -->
     <footer class="border-t border-white/5 py-8 mt-auto animate-enter delay-300">
@@ -351,7 +357,7 @@
             // Initialize Plyr and make it global
             window.player = new Plyr('#player', {
                 controls: [
-                    'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+                    'play-large', 'play', 'progress', 'current-time', 'mute', 'settings', 'pip', 'airplay', 'fullscreen'
                 ],
                 settings: ['captions', 'quality', 'speed'],
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] }
