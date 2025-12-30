@@ -43,7 +43,8 @@ async def get_files(chat_id, page=1):
         return await db.list_tgfiles(id=chat_id, page=page)
     if cache := get_cache(chat_id, int(page)):
         return cache
-    posts = []
+    
+    raw_posts = []
     async for post in UserBot.get_chat_history(chat_id=int(chat_id), limit=50, offset=(int(page) - 1) * 50):
         file = post.video or post.document
         if not file:
@@ -51,10 +52,51 @@ async def get_files(chat_id, page=1):
         title = file.file_name or post.caption or file.file_id
         title, _ = splitext(title)
         title = re.sub(r'[.,|_\',]', ' ', title)
-        posts.append({"msg_id": post.id, "title": title,
-                    "hash": file.file_unique_id[:6], "size": get_readable_file_size(file.file_size), "type": file.mime_type})
-    save_cache(chat_id, {"posts": posts}, page)
-    return posts
+        raw_posts.append({"msg_id": post.id, "title": title,
+                    "hash": file.file_unique_id[:6], "size": get_readable_file_size(file.file_size), 
+                    "type": file.mime_type, "chat_id": str(chat_id)})
+    
+    # Grouping Logic
+    grouped_posts = []
+    series_map = {}
+    
+    for post in raw_posts:
+        # Regex to detect part files: Name.part01.mp4 or Name part 1.mkv
+        match = re.search(r'(.*)[ ._]part(\d+)$', post['title'], re.IGNORECASE)
+        
+        if match:
+            series_name = match.group(1).strip()
+            part_number = int(match.group(2))
+            
+            if series_name not in series_map:
+                series_map[series_name] = []
+            
+            # Store part with its number
+            post['part_number'] = part_number
+            series_map[series_name].append(post)
+        else:
+            grouped_posts.append(post)
+            
+    # Process Grouped Series
+    for series_name, parts in series_map.items():
+        # Sort by part number
+        parts.sort(key=lambda x: x.get('part_number', 0))
+        
+        # Take the first part as representative
+        if parts:
+            representative = parts[0]
+            representative['is_series'] = True
+            representative['parts_count'] = len(parts)
+            representative['title'] = series_name # Use base name as title
+            grouped_posts.append(representative)
+    
+    # Sort final list by message ID (descending usually, or maintain original flow)
+    # The original list was by chat_history (latest first), so we should preserve that somewhat?
+    # For now, let's sort by msg_id descending to match typical telegram order
+    grouped_posts.sort(key=lambda x: x['msg_id'], reverse=True)
+
+    save_cache(chat_id, {"posts": grouped_posts}, page)
+    return grouped_posts
 
 async def posts_file(posts, chat_id):
     phtml = """
@@ -83,8 +125,8 @@ async def posts_file(posts, chat_id):
             </a>
             
             <div class="flex items-center justify-between mt-3 px-1">
-                <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-wider border border-white/5">
-                    {type}
+                <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-wider border border-white/5 {badge_color}">
+                    {type_display}
                 </span>
                 
                 <!-- Admin Checkbox -->
@@ -95,4 +137,26 @@ async def posts_file(posts, chat_id):
         </div>
     </div>
 """
-    return ''.join(phtml.format(chat_id=str(chat_id).replace("-100", ""), id=post["msg_id"], img=f"/api/thumb/{chat_id}?id={post['msg_id']}", title=post["title"], hash=post["hash"], size=post['size'], type=post['type']) for post in posts)
+    html_output = ''
+    for post in posts:
+        # Determine badge text and color
+        if post.get('is_series'):
+            type_display = f"SERIES ({post['parts_count']} Parts)"
+            badge_color = "text-yellow-400 border-yellow-400/20 bg-yellow-400/10"
+        else:
+            type_display = post.get('type', 'FILE')
+            badge_color = ""
+            
+        html_output += phtml.format(
+            chat_id=str(chat_id).replace("-100", ""), 
+            id=post["msg_id"], 
+            img=f"/api/thumb/{chat_id}?id={post['msg_id']}", 
+            title=post["title"], 
+            hash=post["hash"], 
+            size=post['size'], 
+            type=post['type'],
+            type_display=type_display,
+            badge_color=badge_color
+        )
+        
+    return html_output

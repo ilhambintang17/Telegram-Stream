@@ -58,6 +58,50 @@ async def post_playlist(playlists):
 
 
 async def posts_db_file(posts):
+    import re
+    
+    # Grouping Logic
+    grouped_posts = []
+    series_map = {}
+    
+    for post in posts:
+        # Regex to detect part files: Name.part01.mp4 or Name part 1.mkv
+        match = re.search(r'(.*)[ ._]part(\d+)$', post['name'], re.IGNORECASE)
+        
+        if match:
+            series_name = match.group(1).strip()
+            part_number = int(match.group(2))
+            
+            if series_name not in series_map:
+                series_map[series_name] = []
+            
+            # Store part with its number
+            post['part_number'] = part_number
+            series_map[series_name].append(post)
+        else:
+            grouped_posts.append(post)
+            
+    # Process Grouped Series
+    for series_name, parts in series_map.items():
+        # Sort by part number
+        parts.sort(key=lambda x: x.get('part_number', 0))
+        
+        # Take the first part as representative
+        if parts:
+            representative = parts[0]
+            representative['is_series'] = True
+            representative['parts_count'] = len(parts)
+            representative['name'] = series_name # Use base name as title
+            grouped_posts.append(representative)
+    
+    # Sorting (Optional: maintain original order or sort by name)
+    # The incoming 'posts' might already be sorted by date. We generally append new series at the end or keep flow.
+    # For DB file listing, preserving generic order or sorting by name might be best.
+    # Let's simple append for now to not break unexpected pagination orders too much, 
+    # but strictly speaking we're mixing non-parts and series.
+    # If we want to sort by Name:
+    # grouped_posts.sort(key=lambda x: x['name'])
+    
     phtml = """
     <div class="glass-panel rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group relative">
         <a href="/watch/{chat_id}?id={id}&hash={hash}" class="block relative aspect-video bg-gray-900 overflow-hidden cursor-pointer">
@@ -91,11 +135,33 @@ async def posts_db_file(posts):
             </a>
             
             <div class="flex items-center justify-between mt-3 px-1">
-                <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-wider border border-white/5">
-                    {type}
+                <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400 text-[10px] uppercase font-bold tracking-wider border border-white/5 {badge_color}">
+                    {type_display}
                 </span>
             </div>
         </div>
     </div>
 """
-    return ''.join(phtml.format(cid=post["_id"], chat_id=str(post["chat_id"]).replace("-100", ""), id=post["file_id"], img=post["thumbnail"], title=post["name"], hash=post["hash"], size=post['size'], type=post['file_type'], ctype=post["parent_folder"]) for post in posts)
+    html_output = ''
+    for post in grouped_posts:
+        if post.get('is_series'):
+            type_display = f"SERIES ({post['parts_count']} Parts)"
+            badge_color = "text-yellow-400 border-yellow-400/20 bg-yellow-400/10"
+        else:
+            type_display = post.get('file_type', 'FILE')
+            badge_color = ""
+            
+        html_output += phtml.format(
+            cid=post["_id"], 
+            chat_id=str(post["chat_id"]).replace("-100", ""), 
+            id=post["file_id"], 
+            img=post["thumbnail"], 
+            title=post["name"], 
+            hash=post["hash"], 
+            size=post['size'], 
+            type=post['file_type'], 
+            ctype=post["parent_folder"],
+            type_display=type_display,
+            badge_color=badge_color
+        )
+    return html_output

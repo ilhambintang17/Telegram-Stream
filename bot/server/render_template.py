@@ -64,10 +64,68 @@ async def render_page(id, secure_hash, is_admin=False, html='', playlist='', dat
         if filename is None:
             filename = "Proper Filename is Missing"
         filename = re.sub(r'[,|_\',]', ' ', filename)
+        
+        # Series/Part Detection & Playlist Generation
+        playlist_html = ""
+        match = re.search(r'(.*)[ ._]part(\d+)', filename, re.IGNORECASE)
+        if match:
+            series_name = match.group(1).strip()
+            try:
+                # Search for siblings (limit 50 should allow up to ~50 parts)
+                # We need to import search - ensuring it's available
+                from bot.helper.search import search 
+                search_results = await search(chat_id, series_name, 1)
+                
+                parts = []
+                for post in search_results:
+                    # Verify it matches the series name and has a part number
+                    p_match = re.search(r'(.*)[ ._]part(\d+)', post['title'], re.IGNORECASE)
+                    if p_match and p_match.group(1).strip().lower() == series_name.lower():
+                        parts.append({
+                            **post,
+                            'part_number': int(p_match.group(2))
+                        })
+                
+                # Sort by part number
+                parts.sort(key=lambda x: x['part_number'])
+                
+                if len(parts) > 1:
+                    list_items = ""
+                    for part in parts:
+                        is_active = str(part['msg_id']) == str(id)
+                        active_class = "bg-primary/20 ring-1 ring-primary/50" if is_active else ""
+                        active_text = "text-primary" if is_active else "text-white"
+                        
+                        list_items += f"""
+                        <a href="/watch/{chat_id}?id={part['msg_id']}&hash={part['hash']}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors {active_class}">
+                           <div class="size-8 rounded flex items-center justify-center bg-white/5 text-xs text-gray-400 font-bold shrink-0">
+                               {part['part_number']}
+                           </div>
+                           <div class="overflow-hidden">
+                               <p class="text-sm font-medium {active_text} truncate" title="{part['title']}">{part['title']}</p>
+                               <p class="text-[10px] text-gray-500">{part['size']}</p>
+                           </div>
+                        </a>
+                        """
+                    
+                    playlist_html = f"""
+                    <div class="glass-panel p-4 rounded-xl mb-6 animate-enter">
+                        <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined">playlist_play</span>
+                            Series Parts
+                        </h3>
+                        <div class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                           {list_items}
+                        </div>
+                    </div>
+                    """
+            except Exception as e:
+                LOGGER.error(f"Error generating playlist: {e}")
+
         if tag == 'video':
             async with aiopen(ospath.join(tpath, 'video.html')) as r:
                 poster = f"/api/thumb/{chat_id}?id={id}"
-                html = (await r.read()).replace('<!-- Filename -->', filename).replace("<!-- Theme -->", theme.lower()).replace('<!-- Poster -->', poster).replace('<!-- Size -->', size).replace('<!-- Username -->', StreamBot.me.username)
+                html = (await r.read()).replace('<!-- Filename -->', filename).replace("<!-- Theme -->", theme.lower()).replace('<!-- Poster -->', poster).replace('<!-- Size -->', size).replace('<!-- Username -->', StreamBot.me.username).replace('<!-- Playlist -->', playlist_html)
         else:
             async with aiopen(ospath.join(tpath, 'dl.html')) as r:
                 html = (await r.read()).replace('<!-- Filename -->', filename).replace("<!-- Theme -->", theme.lower()).replace('<!-- Size -->', size)
