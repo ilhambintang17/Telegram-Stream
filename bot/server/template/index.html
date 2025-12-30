@@ -120,14 +120,14 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <!-- Search Bar -->
-                <form action="/search/<!-- Chat_id -->" method="post" class="relative group flex-1 sm:w-80">
+                <form action="/search/<!-- Chat_id -->" method="get" class="relative group flex-1 sm:w-80">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span
                             class="material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors">search</span>
                     </div>
                     <input
                         class="block w-full rounded-xl border-0 bg-white/5 py-2.5 pl-10 pr-4 text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 transition-all hover:bg-white/10"
-                        placeholder="Search videos..." type="text" name="query" />
+                        placeholder="Search videos..." type="text" name="q" />
                 </form>
                 <!-- Action Buttons -->
                 <a href="."

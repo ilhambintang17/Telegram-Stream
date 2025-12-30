@@ -130,15 +130,14 @@
             <!-- Toolbar Actions -->
             <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                 <!-- Search -->
-                <form method="post" action="/search" class="relative group w-full sm:w-64">
-                    <input type="hidden" name="chat_id" value="<!-- Chat_id -->">
+                <form method="get" action="/search/db/<!-- Parent_id -->" class="relative group w-full sm:w-64">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span
                             class="material-symbols-outlined text-gray-500 group-focus-within:text-primary transition-colors">search</span>
                     </div>
                     <input
                         class="block w-full pl-10 pr-3 py-2.5 bg-glass-surface border border-glass-border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all hover:bg-glass-surface-hover"
-                        placeholder="Search..." type="text" name="query" />
+                        placeholder="Search..." type="text" name="q" />
                 </form>
             </div>
         </div>
