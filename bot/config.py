@@ -23,3 +23,7 @@ class Telegram:
     WORKERS = int(getenv('WORKERS', '10'))
     MULTI_CLIENT = getenv('MULTI_CLIENT', 'False')
     HIDE_CHANNEL = getenv('HIDE_CHANNEL', 'False')
+    # Media Cache Settings
+    CACHE_ENABLED = getenv('CACHE_ENABLED', 'True').lower() == 'true'
+    CACHE_DIR = getenv('CACHE_DIR', '/app/media_cache')
+    CACHE_MAX_SIZE_GB = int(getenv('CACHE_MAX_SIZE_GB', '80'))

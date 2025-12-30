@@ -104,7 +104,7 @@
         </div>
     </nav>
     <div class="video-player">
-        <video controls crossorigin playsinline data-poster="<!-- Poster -->" id="player">
+        <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
             <source src="#" type="video/mp4" />
         </video>
     </div>
@@ -152,6 +152,16 @@
         hideControls: false,
         keyboard: { focused: true, global: true },
         loop: { active: false },
+        seekTime: 10,
+        invertTime: true,
+        toggleInvert: true,
+        previewThumbnails: { enabled: false },
+    });
+
+    // Enable aggressive buffering by setting currentTime close to buffered end
+    player.on('ready', () => {
+        const video = player.media;
+        video.preload = 'auto';
     });
     function mx_player() {
         const openDownloadLink = downloadlink;
@@ -195,8 +205,10 @@
     }
     function updateVideoSource() {
         const videoElement = document.getElementById('player');
-        const newSrc = downloadlink;
-        videoElement.src = newSrc;
+        const source = videoElement.querySelector('source');
+        source.src = downloadlink;
+        source.type = 'video/mp4';
+        videoElement.load();
     }
     window.onload = function () {
         updateVideoSource();

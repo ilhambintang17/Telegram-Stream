@@ -9,6 +9,7 @@ from bot.config import Telegram
 from bot.server import web_server
 from bot.telegram import StreamBot, UserBot
 from bot.telegram.clients import initialize_clients
+from bot.helper.media_cache import media_cache
 
 loop = get_event_loop()
 
@@ -41,7 +42,24 @@ async def start_services():
     await web.TCPSite(server, '0.0.0.0', Telegram.PORT).start()
 
     LOGGER.info("Surf-TG Started Revolving !")
+    
+    # Start cache cleanup background task
+    if media_cache.enabled:
+        loop.create_task(cache_cleanup_task())
+        LOGGER.info(f"Media cache enabled: max {Telegram.CACHE_MAX_SIZE_GB}GB")
+    
     await idle()
+
+
+async def cache_cleanup_task():
+    """Background task to cleanup cache every 30 minutes."""
+    while True:
+        await asleep(30 * 60)  # 30 minutes
+        try:
+            result = await media_cache.cleanup()
+            LOGGER.info(f"Cache cleanup: {result['files_cached']} files, {result['cache_size_gb']:.2f}GB used")
+        except Exception as e:
+            LOGGER.error(f"Cache cleanup error: {e}")
 
 async def stop_clients():
     await StreamBot.stop()

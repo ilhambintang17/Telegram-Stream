@@ -18,6 +18,7 @@ from bot.helper.index import get_files, posts_file
 from bot.server.custom_dl import ByteStreamer
 from bot.server.render_template import render_page
 from bot.helper.cache import rm_cache
+from bot.helper.media_cache import media_cache
 
 from bot.telegram import StreamBot
 
@@ -378,6 +379,62 @@ async def stream_handler(request: web.Request):
 class_cache = {}
 
 
+async def stream_from_cache(request: web.Request, cached_path, file_size: int, mime_type: str, file_name: str, chat_id: int, msg_id: int, secure_hash: str):
+    """Stream file from local cache."""
+    range_header = request.headers.get("Range", 0)
+    
+    if range_header:
+        from_bytes, until_bytes = range_header.replace("bytes=", "").split("-")
+        from_bytes = int(from_bytes)
+        until_bytes = int(until_bytes) if until_bytes else file_size - 1
+    else:
+        from_bytes = request.http_range.start or 0
+        until_bytes = (request.http_range.stop or file_size) - 1
+    
+    if (until_bytes > file_size) or (from_bytes < 0) or (until_bytes < from_bytes):
+        return web.Response(
+            status=416,
+            body="416: Range not satisfiable",
+            headers={"Content-Range": f"bytes */{file_size}"},
+        )
+    
+    until_bytes = min(until_bytes, file_size - 1)
+    req_length = until_bytes - from_bytes + 1
+    
+    # Record access for LFU scoring
+    await media_cache.record_access(chat_id, msg_id, secure_hash)
+    
+    async def file_sender():
+        chunk_size = 2 * 1024 * 1024  # 2MB chunks
+        with open(cached_path, 'rb') as f:
+            f.seek(from_bytes)
+            remaining = req_length
+            while remaining > 0:
+                chunk = f.read(min(chunk_size, remaining))
+                if not chunk:
+                    break
+                remaining -= len(chunk)
+                yield chunk
+    
+    logging.info(f"Streaming from cache: {file_name}")
+    
+    return web.Response(
+        status=206 if range_header else 200,
+        body=file_sender(),
+        headers={
+            "Content-Type": f"{mime_type}",
+            "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
+            "Content-Length": str(req_length),
+            "Content-Disposition": f'attachment; filename="{file_name}"',
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=31536000",
+            "Connection": "keep-alive",
+            "X-Content-Type-Options": "nosniff",
+            "X-Cache": "HIT",
+        },
+    )
+
+
 async def media_streamer(request: web.Request, chat_id: int, id: int, secure_hash: str):
     range_header = request.headers.get("Range", 0)
 
@@ -403,6 +460,31 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
         raise InvalidHash
 
     file_size = file_id.file_size
+    mime_type = file_id.mime_type
+    file_name = file_id.file_name
+    
+    if mime_type:
+        if not file_name:
+            try:
+                file_name = f"{secrets.token_hex(2)}.{mime_type.split('/')[1]}"
+            except (IndexError, AttributeError):
+                file_name = f"{secrets.token_hex(2)}.unknown"
+    else:
+        if file_name:
+            mime_type = mimetypes.guess_type(file_id.file_name)
+            if isinstance(mime_type, tuple):
+                mime_type = mime_type[0] or "application/octet-stream"
+        else:
+            mime_type = "application/octet-stream"
+            file_name = f"{secrets.token_hex(2)}.unknown"
+
+    # Check if file is cached
+    cached_path = media_cache.get_cached_path(chat_id, id, secure_hash)
+    if cached_path and cached_path.exists():
+        return await stream_from_cache(
+            request, cached_path, file_size, mime_type, file_name,
+            chat_id, id, secure_hash
+        )
 
     if range_header:
         from_bytes, until_bytes = range_header.replace("bytes=", "").split("-")
@@ -419,23 +501,6 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             headers={"Content-Range": f"bytes */{file_size}"},
         )
 
-    mime_type = file_id.mime_type
-    file_name = file_id.file_name
-    disposition = "attachment"
-
-    if mime_type:
-        if not file_name:
-            try:
-                file_name = f"{secrets.token_hex(2)}.{mime_type.split('/')[1]}"
-            except (IndexError, AttributeError):
-                file_name = f"{secrets.token_hex(2)}.unknown"
-    else:
-        if file_name:
-            mime_type = mimetypes.guess_type(file_id.file_name)
-        else:
-            mime_type = "application/octet-stream"
-            file_name = f"{secrets.token_hex(2)}.unknown"
-
     # Dynamic chunk size: 2MB for video for faster throughput, 1MB for others
     if mime_type and isinstance(mime_type, str) and mime_type.startswith('video/'):
         chunk_size = 2 * 1024 * 1024  # 2MB for videos
@@ -451,7 +516,61 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
     req_length = until_bytes - from_bytes + 1
     part_count = math.ceil(until_bytes / chunk_size) - \
         math.floor(offset / chunk_size)
-    body = tg_connect.yield_file(
+    
+    # Prepare cache file path for streaming write (only for full file requests)
+    cache_file_path = None
+    cache_file_handle = None
+    should_cache = (
+        media_cache.enabled and 
+        from_bytes == 0 and 
+        until_bytes == file_size - 1 and
+        media_cache._is_cacheable(mime_type, file_name)
+    )
+    
+    if should_cache:
+        cache_file_path = await media_cache.add_to_cache_streaming(
+            chat_id, id, secure_hash, mime_type, file_name
+        )
+        if cache_file_path:
+            try:
+                await media_cache._ensure_space(file_size)
+                cache_file_handle = open(cache_file_path, 'wb')
+            except Exception as e:
+                logging.error(f"Cache file open error: {e}")
+                cache_file_path = None
+    
+    async def body_with_cache():
+        """Yield chunks and write to cache if applicable."""
+        total_written = 0
+        try:
+            async for chunk in tg_connect.yield_file(
+                file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
+            ):
+                if cache_file_handle and chunk:
+                    try:
+                        cache_file_handle.write(chunk)
+                        total_written += len(chunk)
+                    except Exception as e:
+                        logging.error(f"Cache write error: {e}")
+                yield chunk
+        finally:
+            if cache_file_handle:
+                try:
+                    cache_file_handle.close()
+                    # Finalize cache entry if full file was written
+                    if total_written == file_size:
+                        await media_cache.finalize_cache(
+                            chat_id, id, secure_hash, cache_file_path,
+                            total_written, mime_type, file_name
+                        )
+                    else:
+                        # Incomplete download, remove partial file
+                        if cache_file_path and cache_file_path.exists():
+                            cache_file_path.unlink()
+                except Exception as e:
+                    logging.error(f"Cache finalize error: {e}")
+    
+    body = body_with_cache() if should_cache and cache_file_path else tg_connect.yield_file(
         file_id, index, offset, first_part_cut, last_part_cut, part_count, chunk_size
     )
 
@@ -462,10 +581,11 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             "Content-Type": f"{mime_type}",
             "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
             "Content-Length": str(req_length),
-            "Content-Disposition": f'{disposition}; filename="{file_name}"',
+            "Content-Disposition": f'attachment; filename="{file_name}"',
             "Accept-Ranges": "bytes",
             "Cache-Control": "public, max-age=31536000",
             "Connection": "keep-alive",
             "X-Content-Type-Options": "nosniff",
+            "X-Cache": "MISS",
         },
     )
