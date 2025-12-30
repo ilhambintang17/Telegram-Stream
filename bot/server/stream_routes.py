@@ -558,5 +558,8 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             "Connection": "keep-alive",
             "X-Content-Type-Options": "nosniff",
             "X-Cache": "MISS",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Range",
+            "Access-Control-Expose-Headers": "Content-Range, Content-Length",
         },
     )
