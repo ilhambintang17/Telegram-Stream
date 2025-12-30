@@ -138,10 +138,16 @@ async def render_page(id, secure_hash, is_admin=False, html='', playlist='', dat
                 search_results = await search(chat_id, series_name, 1)
                 
                 parts = []
+                seen_ids = set()
                 for post in search_results:
+                    # Deduplicate by msg_id
+                    if post['msg_id'] in seen_ids:
+                        continue
+                        
                     # Verify it matches the series name and has a part number
                     p_match = re.search(r'(.*)[ ._]part(\d+)', post['title'], re.IGNORECASE)
                     if p_match and p_match.group(1).strip().lower() == series_name.lower():
+                        seen_ids.add(post['msg_id'])
                         parts.append({
                             **post,
                             'part_number': int(p_match.group(2))

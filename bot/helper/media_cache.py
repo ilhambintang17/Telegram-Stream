@@ -125,14 +125,18 @@ class MediaCache:
         chat_id: int,
         msg_id: int,
         secure_hash: str,
-        file_id,  # Original file_id, used as fallback info
+        file_id,
         file_size: int,
         mime_type: str,
         file_name: str,
         tg_connect,
         client_index: int
     ) -> None:
-        """Actually download the file to cache."""
+        """Actually download the file to cache with client rotation."""
+        from bot.telegram import multi_clients
+        from bot.server.custom_dl import ByteStreamer
+        import asyncio
+
         # Determine extension
         if file_name:
             ext = Path(file_name).suffix.lower()
@@ -146,77 +150,121 @@ class MediaCache:
         filename = self._generate_filename(cache_key, ext)
         file_path = self.cache_dir / filename
         
-        try:
-            # Ensure directory exists FIRST
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Fetch FRESH file properties using background client
-            fresh_file_id = await tg_connect.get_file_properties(chat_id=chat_id, message_id=msg_id)
-            logging.info(f"Background download: got fresh file_id for {file_name}")
-            
-            # Ensure space
-            await self._ensure_space(file_size)
-            
-            # Download full file
-            chunk_size = 1024 * 1024  # 1MB chunks
-            offset = 0
-            total_written = 0
-            
-            with open(file_path, 'wb') as f:
-                async for chunk in tg_connect.yield_file(
-                    fresh_file_id, client_index, offset, 0, file_size % chunk_size or chunk_size,
-                    (file_size + chunk_size - 1) // chunk_size, chunk_size
-                ):
-                    if chunk:
-                        f.write(chunk)
-                        total_written += len(chunk)
-            
-            # Verify file size - use total_written if file doesn't exist
-            if file_path.exists():
-                actual_size = file_path.stat().st_size
-            else:
-                actual_size = total_written
-            
-            if actual_size >= file_size * 0.99:  # Allow 1% tolerance
-                # Save to cache
-                now = datetime.utcnow()
-                score = self._calculate_score(1, now)
+        # Retry loop for client rotation
+        max_retries = len(multi_clients)
+        current_client_index = client_index
+        current_tg_connect = tg_connect
+
+        for attempt in range(max_retries):
+            try:
+                # Ensure directory exists
+                self.cache_dir.mkdir(parents=True, exist_ok=True)
                 
-                self.collection.update_one(
-                    {"cache_key": cache_key},
-                    {
-                        "$set": {
-                            "cache_key": cache_key,
-                            "file_path": str(file_path),
-                            "file_size": actual_size,
-                            "mime_type": mime_type,
-                            "file_name": file_name,
-                            "access_count": 1,
-                            "last_access": now,
-                            "created_at": now,
-                            "score": score
-                        }
-                    },
-                    upsert=True
-                )
-                logging.info(f"Background download complete: {file_name} ({actual_size / 1024 / 1024:.1f}MB)")
-            else:
-                # Incomplete download
-                logging.warning(f"Incomplete download: {file_name} ({actual_size}/{file_size})")
+                # Fetch FRESH file properties
+                try:
+                    fresh_file_id = await current_tg_connect.get_file_properties(chat_id=chat_id, message_id=msg_id)
+                except Exception as e:
+                    if "FLOOD_WAIT" in str(e):
+                        raise e # Re-raise to be caught by outer handler for rotation
+                    logging.error(f"Failed to get file properties: {e}")
+                    # If we can't even get properties, maybe try next client?
+                    raise e
+
+                logging.info(f"Background download: got fresh file_id for {file_name} (Client {current_client_index})")
+                
+                # Ensure space
+                await self._ensure_space(file_size)
+                
+                # Download full file
+                chunk_size = 1024 * 1024  # 1MB chunks
+                offset = 0
+                total_written = 0
+                
+                with open(file_path, 'wb') as f:
+                    async for chunk in current_tg_connect.yield_file(
+                        fresh_file_id, current_client_index, offset, 0, file_size % chunk_size or chunk_size,
+                        (file_size + chunk_size - 1) // chunk_size, chunk_size
+                    ):
+                        if chunk:
+                            f.write(chunk)
+                            total_written += len(chunk)
+                
+                # Verify file size
                 if file_path.exists():
-                    file_path.unlink()
+                    actual_size = file_path.stat().st_size
+                else:
+                    actual_size = total_written
+                
+                if actual_size >= file_size * 0.99:
+                    # Success! Save metadata and break loop
+                    now = datetime.utcnow()
+                    score = self._calculate_score(1, now)
                     
-        except asyncio.CancelledError:
-            logging.debug(f"Background download cancelled: {file_name}")
-            if file_path.exists():
-                file_path.unlink()
-        except Exception as e:
-            logging.error(f"Background download error: {e}")
-            if file_path.exists():
-                file_path.unlink()
-        finally:
-            # Remove from downloading set
-            self.downloading.discard(cache_key)
+                    self.collection.update_one(
+                        {"cache_key": cache_key},
+                        {
+                            "$set": {
+                                "cache_key": cache_key,
+                                "file_path": str(file_path),
+                                "file_size": actual_size,
+                                "mime_type": mime_type,
+                                "file_name": file_name,
+                                "access_count": 1,
+                                "last_access": now,
+                                "created_at": now,
+                                "score": score
+                            }
+                        },
+                        upsert=True
+                    )
+                    logging.info(f"Background download complete: {file_name} ({actual_size / 1024 / 1024:.1f}MB)")
+                    self.downloading.discard(cache_key)
+                    return # Exit function on success
+
+                else:
+                    logging.warning(f"Incomplete download: {file_name} ({actual_size}/{file_size})")
+                    if file_path.exists():
+                        file_path.unlink()
+                        
+            except Exception as e:
+                err_str = str(e)
+                if "FLOOD_WAIT" in err_str or "flood" in err_str.lower():
+                    wait_time = 5 # Default fallback
+                    # Try to extract wait time if possible, but simplest is just rotate
+                    logging.warning(f"FloodWait on Client {current_client_index}: {e}. Switching client...")
+                    
+                    # Rotate Client
+                    current_client_index = (current_client_index + 1) % len(multi_clients)
+                    current_client = multi_clients[current_client_index]
+                    current_tg_connect = ByteStreamer(current_client)
+                    
+                    # Small delay before retry
+                    await asyncio.sleep(1)
+                    continue # Try next client
+                
+                elif isinstance(e, asyncio.CancelledError):
+                    logging.debug(f"Background download cancelled: {file_name}")
+                    if file_path.exists():
+                        file_path.unlink()
+                    break # Don't retry on cancel
+                else:
+                    logging.error(f"Background download error (Client {current_client_index}): {e}")
+                    if file_path.exists():
+                        file_path.unlink()
+                    # Try next client for other errors too? Maybe.
+                    # For now, let's retry only on FloodWait or similar network issues.
+                    # But if "Client Request Interrupted" happens, maybe we should retry?
+                    # Let's retry for ANY exception that isn't Cancelled, up to max_retries
+                    logging.info(f"Retrying with next client due to error...")
+                    current_client_index = (current_client_index + 1) % len(multi_clients)
+                    current_client = multi_clients[current_client_index]
+                    current_tg_connect = ByteStreamer(current_client)
+                    await asyncio.sleep(1)
+                    continue
+
+        # If loop finishes without return, we failed
+        logging.error(f"All download attempts failed for {file_name}")
+        self.downloading.discard(cache_key)
 
     def _generate_cache_key(self, chat_id: int, msg_id: int, secure_hash: str) -> str:
         """Generate unique cache key for a media file."""
