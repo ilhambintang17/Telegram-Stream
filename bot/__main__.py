@@ -62,7 +62,7 @@ async def cache_cleanup_task():
         await asleep(30 * 60)  # 30 minutes
         try:
             result = await media_cache.cleanup()
-            LOGGER.info(f"Cache cleanup: {result['files_cached']} files, {result['cache_size_gb']:.2f}GB used")
+            LOGGER.info(f"Cache stats: {result['files_cached']} files, {result['cache_size_gb']:.2f}GB used")
         except Exception as e:
             LOGGER.error(f"Cache cleanup error: {e}")
 

@@ -8,12 +8,24 @@
     <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
         type="image/x-icon">
     <title>Surf-TG: Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://bootswatch.com/5/<!-- Theme -->/bootstrap.min.css">
     <style>
         body {
             height: 100vh;
             margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            display: flex;
+            flex-direction: column;
+        }
 
+        .navbar {
+            background: rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem !important;
         }
 
         .container {
@@ -27,86 +39,115 @@
         form {
             width: 100%;
             max-width: 400px;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
 
-        button {
+        .inputBox {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(161, 196, 253, 0.3);
+            border-color: #a1c4fd;
+        }
+
+        .btn-primary {
             width: 100%;
-            max-width: 200px;
-            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
         }
 
-        a {
-            text-decoration: none;
+        .card-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #444;
+            background: transparent;
+            border: none;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .card {
-            align-items: center;
+        .footer {
+            margin-top: auto;
+            padding: 20px 0;
+            color: rgba(0,0,0,0.5) !important;
         }
 
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #888;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: rgba(0,0,0,0.4);
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark" style="margin-bottom: 1rem; padding: 10px;">
-        <div class="container" style="align-items: flex-start;">
-            <a class="navbar-brand" style="border: 0px;" href="/">
+    <nav class="navbar navbar-expand-lg" data-bs-theme="light">
+        <div class="container-fluid justify-content-center">
+            <a class="navbar-brand" href="/">
                 <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="45">
+                    height="50">
             </a>
         </div>
     </nav>
-    <div class="card bg-light mb-3" style="width: fit-content; margin: auto;">
-        <div class="card-header">Welcome To Surf-TG</div>
-    </div>
+    
     <div class="container">
-        <div class="alert alert-dismissible alert-danger error-popup" id="errorPopup">
+        <div class="alert alert-dismissible alert-danger error-popup" id="errorPopup" style="border-radius: 15px; width: 100%; max-width: 400px;">
             <strong>Oh snap! <!-- Error --></strong>
         </div>
+        
         <form id="signinForm" action="/login" method="post">
+            <div class="card-header">Welcome Back</div>
             <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
             <fieldset>
                 <div class="inputBox">
-                    <label for="exampleInputUsername" class="form-label mt-4">Username</label>
+                    <label for="exampleInputUsername" class="form-label">Username</label>
                     <input type="text" class="form-control" id="exampleInputUsername" name="username"
                         placeholder="Enter username">
                 </div>
                 <div class="inputBox">
-                    <label for="exampleInputPassword1" class="form-label mt-4">Password</label>
+                    <label for="exampleInputPassword1" class="form-label">Password</label>
                     <input type="password" class="form-control" id="exampleInputPassword1" name="password"
                         placeholder="Password" autocomplete="off">
                 </div>
                 <div class="text-center">
-                    <button type="submit" class="btn btn-primary inputBox">Submit</button>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
                 </div>
             </fieldset>
         </form>
     </div>
-    <footer class="footer mt-auto py-3 text-muted text-center" style="color: white;">
-        <div class="container d-flex justify-content-center align-items-center" style="width: 100%; padding: 0 10px;">
-            <p class="float-end">
-            <p>Made with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" />
-                </svg> by <a href="https://github.com/weebzone" target="_blank">Karan Adhikari</a><br>
-                &copy; 2024 <a href="https://github.com/weebzone/Surf-TG" target="_blank">Surf-TG</a>. All Rights
-                Reserved.
-            </p>
-        </div>
+
+    <footer class="footer mt-auto py-3 text-center">
+        <!-- Footer content removed as requested -->
     </footer>
 
 </body>
@@ -116,9 +157,7 @@
         var errorMessage = errorPopup.querySelector("strong").innerText.trim();
 
         if (errorMessage !== "Oh snap! Invalid username or password") {
-
             errorPopup.style.display = "none";
-
         }
         if (errorMessage === "Oh snap! Invalid username or password") {
             setTimeout(function () {
@@ -127,6 +166,5 @@
         }
     };
 </script>
-
 
 </html>

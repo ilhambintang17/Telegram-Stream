@@ -465,7 +465,7 @@ class MediaCache:
         if current_size <= target_size:
             return
         
-        logging.info(f"Cache cleanup: need {needed_bytes/1024/1024:.1f}MB, current {current_size/1024/1024/1024:.2f}GB")
+        logging.info(f"Cache eviction triggered: Container full (limit {self.max_size_bytes/1024/1024/1024:.2f}GB). Need {needed_bytes/1024/1024:.1f}MB, current {current_size/1024/1024/1024:.2f}GB")
         
         # Get files sorted by score (lowest first = evict first)
         cursor = self.collection.find().sort("score", ASCENDING)

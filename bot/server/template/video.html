@@ -11,15 +11,24 @@
     <title>Surf-TG: <!-- Filename --> </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/css/plyr.css">
     <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://bootswatch.com/5/<!-- Theme -->/bootstrap.min.css">
     <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
     <style>
         body {
             height: 100vh;
             margin: 0;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+        }
 
+        .navbar {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px !important;
         }
 
         .container {
@@ -27,9 +36,12 @@
             padding: 0px;
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
+            justify-content: center;
+            /* Centered content */
             align-items: flex-start;
-            gap: 10px;
+            gap: 15px;
+            width: 100%;
+            max-width: 1200px;
         }
 
         a {
@@ -38,45 +50,74 @@
 
         .card {
             align-items: left;
-            box-shadow: none;
-            border-radius: 0%;
-            max-width: 48%
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-radius: 12px !important;
+            border: none;
+            background: white;
+            max-width: 600px;
+            width: 100%;
         }
 
         .video-player {
-            max-width: 48%;
-            margin: auto;
-            padding-bottom: 10px;
+            width: 100%;
+            max-width: 900px;
+            /* Limit max width for large screens */
+            margin: 0 auto 20px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            background: #000;
         }
 
         .plyr {
-            border-radius: 5px;
+            border-radius: 0;
+            /* Let container handle radius */
+            --plyr-color-main: #6a11cb;
+            /* Theme color */
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 117, 252, 0.3);
         }
 
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #bbb;
+            border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
         }
 
+        /* Mobile Responsive Fixes */
         @media (max-width: 992px) {
-
             .video-player {
-                max-width: 80%;
-                margin: auto;
+                max-width: 100%;
+                /* Full width on mobile/tablet */
+                width: 100%;
+                border-radius: 0;
+                /* Square edges on mobile full width often looks better, or keep radius if padded */
+            }
+
+            .container {
+                padding: 0 10px;
             }
 
             .card {
-                align-items: left;
-                box-shadow: none;
-                border-radius: 0%;
-                max-width: 80%
+                max-width: 100%;
             }
 
             .navbar {
@@ -88,7 +129,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg bg-primary mb-3 p-1" data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
                 <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
@@ -96,43 +137,39 @@
             </a>
             <div class="d-flex">
                 <form id="signoutForm" action="/logout" method="post" class="d-flex" role="logout">
-                    <button type="submit" class="btn btn-secondary btn-sm"><i class="bi bi-box-arrow-left"></i>
+                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-left"></i>
                         Logout</button>
                 </form>
             </div>
-
         </div>
     </nav>
-    <div class="video-player">
-        <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
-            <source src="#" type="video/mp4" />
-        </video>
-    </div>
-    <div class="card bg-light mb-3" style="margin: auto; border-radius: 5px;">
-        <div class="card-body">
-            <h6 class="card-title">Name: <!-- Filename --></h6>
-            <p class="card-text">Size: <!-- Size --></p>
+
+    <div class="container pb-4">
+        <div class="video-player">
+            <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
+                <source src="#" type="video/mp4" />
+            </video>
+        </div>
+
+        <div class="card bg-white mb-3 p-3">
+            <div class="card-body p-0">
+                <h6 class="card-title fw-bold mb-2"><!-- Filename --></h6>
+                <p class="card-text text-muted small mb-0">Size: <!-- Size --></p>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 w-100">
+            <div onclick="mx_player()" class="btn btn-primary">MX Player</div>
+            <div onclick="vlc_player()" class="btn btn-primary">VLC Mobile</div>
+            <div onclick="km_player()" class="btn btn-primary">KM Player</div>
+            <div onclick="get_file()" class="btn btn-primary">Get File</div>
+            <div onclick="copyUrl()" class="btn btn-primary">Copy Url</div>
+            <div onclick="download()" class="btn btn-primary">Download</div>
         </div>
     </div>
-    <div class="container d-flex justify-content-center align-items-center" style="width: 100%; padding: 0 5px;">
-        <div onclick="mx_player()" class="btn btn-primary">MX Player</div>
-        <div onclick="vlc_player()" class="btn btn-primary">VLC Mobile</div>
-        <div onclick="km_player()" class="btn btn-primary">KM Player</div>
-        <div onclick="get_file()" class="btn btn-primary">Get File</div>
-        <div onclick="copyUrl()" class="btn btn-primary">Copy Url</div>
-        <div onclick="download()" class="btn btn-primary">Download</div>
-    </div>
-    <footer class="footer mt-auto py-3 text-muted text-center" style="color: white;">
-        <div class="container d-flex justify-content-center align-items-center" style="width: 100%; padding: 0 10px;">
-            <p class="float-end">
-            <p>Made with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" />
-                </svg> by <a href="https://github.com/weebzone" target="_blank">Karan Adhikari</a><br>
-                &copy; 2024 <a href="https://github.com/weebzone/Surf-TG" target="_blank">Surf-TG</a>. All Rights
-                Reserved.
-        </div>
+
+    <footer class="footer mt-auto py-3 text-center text-muted">
+        <!-- Footer content removed -->
     </footer>
 </body>
 <script>
