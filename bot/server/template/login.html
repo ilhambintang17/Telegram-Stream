@@ -8,134 +8,161 @@
     <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/ico2.png"
         type="image/x-icon">
     <title>Surf-TG: Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://bootswatch.com/5/<!-- Theme -->/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Standard Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --accent: #e50914;
+            --accent-hover: #ff1a1a;
+            --text-primary: #ffffff;
+        }
+
         body {
             height: 100vh;
             margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url('https://assets.nflxext.com/ffe/siteui/vlv3/ab180a27-b661-44cd-9579-9dcaf57ea4cc/4d6d7aae-413c-439f-9e66-681324750c95/US-en-20231009-popsignuptwoweeks-perspective_alpha_website_large.jpg');
+            /* Generic bg or keep simple gradient */
+            background-size: cover;
+            background-position: center;
             display: flex;
             flex-direction: column;
+            color: white;
+        }
+
+        /* Overlay to ensure readability and dark branding */
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
         }
 
         .navbar {
-            background: rgba(255, 255, 255, 0.2) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 2rem !important;
+            background: transparent !important;
+            padding: 20px 40px !important;
         }
 
         .container {
             margin: auto;
-            padding: 0px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
         }
 
         form {
             width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 450px;
+            padding: 60px 68px 40px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.75);
+            margin-bottom: 90px;
+        }
+
+        @media (max-width: 740px) {
+            form {
+                background: black;
+                padding: 20px;
+                margin-bottom: 0;
+            }
+
+            .navbar {
+                padding: 15px !important;
+            }
         }
 
         .inputBox {
             margin-bottom: 20px;
         }
 
-        .form-control {
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.9);
+        .form-label {
+            color: #ccc;
+            font-size: 0.9em;
         }
-        
+
+        .form-control {
+            border-radius: 4px;
+            border: 0;
+            padding: 16px 20px;
+            background: #333;
+            color: white;
+        }
+
         .form-control:focus {
-            box-shadow: 0 0 0 3px rgba(161, 196, 253, 0.3);
-            border-color: #a1c4fd;
+            background: #454545;
+            color: white;
+            box-shadow: none;
+            border-bottom: 2px solid var(--accent);
         }
 
         .btn-primary {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            padding: 16px;
+            border-radius: 4px;
+            background: var(--accent);
             border: none;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: transform 0.2s;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 24px;
+            transition: background 0.2s;
         }
-        
+
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+            background: var(--accent-hover);
         }
 
         .card-header {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #444;
-            background: transparent;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+
+        .error-popup {
+            background: var(--accent);
+            color: white;
             border: none;
-            text-align: center;
             margin-bottom: 20px;
         }
 
         .footer {
             margin-top: auto;
-            padding: 20px 0;
-            color: rgba(0,0,0,0.5) !important;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.4);
+            padding: 20px;
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg" data-bs-theme="light">
-        <div class="container-fluid justify-content-center">
-            <a class="navbar-brand" href="/">
-                <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
-                    height="50">
-            </a>
-        </div>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">
+            <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
+                height="50">
+        </a>
     </nav>
-    
+
     <div class="container">
-        <div class="alert alert-dismissible alert-danger error-popup" id="errorPopup" style="border-radius: 15px; width: 100%; max-width: 400px;">
+        <!-- Error Popup -->
+        <div class="alert alert-dismissible fade show error-popup" id="errorPopup"
+            style="display: none; width: 100%; max-width: 450px;">
             <strong>Oh snap! <!-- Error --></strong>
         </div>
-        
+
         <form id="signinForm" action="/login" method="post">
-            <div class="card-header">Welcome Back</div>
+            <h1 class="card-header">Sign In</h1>
             <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
             <fieldset>
                 <div class="inputBox">
-                    <label for="exampleInputUsername" class="form-label">Username</label>
                     <input type="text" class="form-control" id="exampleInputUsername" name="username"
-                        placeholder="Enter username">
+                        placeholder="Username">
                 </div>
                 <div class="inputBox">
-                    <label for="exampleInputPassword1" class="form-label">Password</label>
                     <input type="password" class="form-control" id="exampleInputPassword1" name="password"
                         placeholder="Password" autocomplete="off">
                 </div>
@@ -146,23 +173,22 @@
         </form>
     </div>
 
-    <footer class="footer mt-auto py-3 text-center">
-        <!-- Footer content removed as requested -->
-    </footer>
+    <footer class="footer text-center"></footer>
 
 </body>
 <script>
     window.onload = function () {
         var errorPopup = document.getElementById("errorPopup");
-        var errorMessage = errorPopup.querySelector("strong").innerText.trim();
+        // Simple check if error template variable was populated
+        var errorContent = document.querySelector("strong").innerText.trim();
 
-        if (errorMessage !== "Oh snap! Invalid username or password") {
-            errorPopup.style.display = "none";
-        }
-        if (errorMessage === "Oh snap! Invalid username or password") {
-            setTimeout(function () {
-                errorPopup.style.display = "none";
-            }, 5000);
+        // Show only if there is a real error message replaced by the server
+        if (errorContent && errorContent !== "Oh snap! <!-- Error -->" && errorContent !== "Oh snap!") {
+            errorPopup.style.display = "block";
+
+            if (errorContent.includes("Invalid username")) {
+                setTimeout(() => errorPopup.style.display = "none", 5000);
+            }
         }
     };
 </script>

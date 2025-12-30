@@ -11,24 +11,41 @@
     <title>Surf-TG: <!-- Filename --> </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/css/plyr.css">
     <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://bootswatch.com/5/<!-- Theme -->/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Use standard Bootstrap 5, not the variable theme which user wanted disabled -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
     <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --accent: #e50914;
+            --accent-hover: #ff1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --card-glass: rgba(18, 18, 26, 0.7);
+        }
+
         body {
             height: 100vh;
             margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
         }
 
         .navbar {
-            background: rgba(255, 255, 255, 0.9) !important;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background: rgba(10, 10, 15, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 20px !important;
             margin-bottom: 20px !important;
+        }
+
+        .navbar-brand img {
+            filter: drop-shadow(0 0 5px rgba(229, 9, 20, 0.5));
         }
 
         .container {
@@ -37,99 +54,123 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            /* Centered content */
             align-items: flex-start;
-            gap: 15px;
+            gap: 20px;
             width: 100%;
             max-width: 1200px;
         }
 
-        a {
-            text-decoration: none;
-        }
-
-        .card {
-            align-items: left;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            border-radius: 12px !important;
-            border: none;
-            background: white;
-            max-width: 600px;
-            width: 100%;
-        }
-
         .video-player {
             width: 100%;
-            max-width: 900px;
-            /* Limit max width for large screens */
-            margin: 0 auto 20px auto;
-            border-radius: 15px;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             background: #000;
+            position: relative;
         }
 
         .plyr {
-            border-radius: 0;
-            /* Let container handle radius */
-            --plyr-color-main: #6a11cb;
-            /* Theme color */
+            --plyr-color-main: var(--accent);
+            --plyr-video-background: #000;
         }
 
-        .btn-primary {
-            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
-            border: none;
+        .card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 1000px;
+            color: var(--text-primary);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+        }
+
+        .btn-action {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 10px 20px;
             border-radius: 8px;
-            padding: 8px 16px;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
         }
 
-        .btn-primary:hover {
+        .btn-action:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 117, 252, 0.3);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+
+        .btn-logout {
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-logout:hover {
+            color: white;
+            border-color: white;
+            background: transparent;
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+            background: var(--bg-primary);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #bbb;
-            border-radius: 3px;
+            background: #333;
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #999;
+            background: var(--accent);
         }
 
         /* Mobile Responsive Fixes */
         @media (max-width: 992px) {
             .video-player {
                 max-width: 100%;
-                /* Full width on mobile/tablet */
                 width: 100%;
                 border-radius: 0;
-                /* Square edges on mobile full width often looks better, or keep radius if padded */
+                /* Edge to edge on mobile */
             }
 
             .container {
-                padding: 0 10px;
+                padding: 0;
+                gap: 15px;
             }
 
             .card {
-                max-width: 100%;
+                margin: 0 15px;
+                width: calc(100% - 30px);
             }
 
-            .navbar {
-                padding-right: 15px;
-                padding-left: 15px;
+            .actions-container {
+                padding: 0 15px 30px 15px;
+                justify-content: center;
             }
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
                 <img src="https://cdn.jsdelivr.net/gh/weebzone/weebzone/data/Surf-TG/src/logo%20(2).png" alt="Logo"
@@ -137,40 +178,41 @@
             </a>
             <div class="d-flex">
                 <form id="signoutForm" action="/logout" method="post" class="d-flex" role="logout">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-left"></i>
-                        Logout</button>
+                    <button type="submit" class="btn btn-logout btn-sm display-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-left"></i> Logout
+                    </button>
                 </form>
             </div>
         </div>
     </nav>
 
-    <div class="container pb-4">
-        <div class="video-player">
-            <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
-                <source src="#" type="video/mp4" />
-            </video>
-        </div>
+    <div class="video-player">
+        <video controls crossorigin playsinline preload="auto" data-poster="<!-- Poster -->" id="player">
+            <source src="#" type="video/mp4" />
+        </video>
+    </div>
 
-        <div class="card bg-white mb-3 p-3">
+    <div class="container">
+        <div class="card p-3">
             <div class="card-body p-0">
-                <h6 class="card-title fw-bold mb-2"><!-- Filename --></h6>
-                <p class="card-text text-muted small mb-0">Size: <!-- Size --></p>
+                <h5 class="card-title mb-2"><!-- Filename --></h5>
+                <p class="card-text small mb-0"><i class="bi bi-hdd-fill me-2"></i>Size: <!-- Size --></p>
             </div>
         </div>
 
-        <div class="d-flex flex-wrap justify-content-center gap-2 w-100">
-            <div onclick="mx_player()" class="btn btn-primary">MX Player</div>
-            <div onclick="vlc_player()" class="btn btn-primary">VLC Mobile</div>
-            <div onclick="km_player()" class="btn btn-primary">KM Player</div>
-            <div onclick="get_file()" class="btn btn-primary">Get File</div>
-            <div onclick="copyUrl()" class="btn btn-primary">Copy Url</div>
-            <div onclick="download()" class="btn btn-primary">Download</div>
+        <div class="d-flex flex-wrap gap-3 w-100 actions-container justify-content-center">
+            <div onclick="mx_player()" class="btn-action"><i class="bi bi-play-circle"></i> MX Player</div>
+            <div onclick="vlc_player()" class="btn-action"><i class="bi bi-cone-striped"></i> VLC</div>
+            <div onclick="km_player()" class="btn-action"><i class="bi bi-play-btn"></i> KM Player</div>
+            <div onclick="get_file()" class="btn-action"><i class="bi bi-telegram"></i> Get File</div>
+            <div onclick="copyUrl()" class="btn-action"><i class="bi bi-link-45deg"></i> Copy Link</div>
+            <div onclick="download()" class="btn-action"><i class="bi bi-download"></i> Download</div>
         </div>
     </div>
 
-    <footer class="footer mt-auto py-3 text-center text-muted">
-        <!-- Footer content removed -->
-    </footer>
+    <!-- Empty footer as requested -->
+    <footer style="margin-top: auto; padding: 20px;"></footer>
+
 </body>
 <script>
     const videolink = window.location.href;
@@ -195,51 +237,43 @@
         previewThumbnails: { enabled: false },
     });
 
-    // Enable aggressive buffering by setting currentTime close to buffered end
     player.on('ready', () => {
         const video = player.media;
         video.preload = 'auto';
     });
+
     function mx_player() {
-        const openDownloadLink = downloadlink;
-        const openMx = `intent:${openDownloadLink}#Intent;package=com.mxtech.videoplayer.ad;end`;
-        window.location.href = openMx;
+        window.location.href = `intent:${downloadlink}#Intent;package=com.mxtech.videoplayer.ad;end`;
     }
 
     function vlc_player() {
-        const openDownloadLink = downloadlink;
-        const openVlc = `vlc://${openDownloadLink}`;
-        window.location.href = openVlc;
+        window.location.href = `vlc://${downloadlink}`;
     }
+
     function km_player() {
-        const openDownloadLink = downloadlink;
-        const openKmplayer = `intent:${openDownloadLink}#Intent;package=com.kmplayer;end`;
-        window.location.href = openKmplayer;
+        window.location.href = `intent:${downloadlink}#Intent;package=com.kmplayer;end`;
     }
+
     function download() {
-        const openDownloadLink = downloadlink;
-        window.location.href = openDownloadLink;
+        window.location.href = downloadlink;
     }
+
     function get_file() {
         const regex = /(\d+)\?id=(\d+)&/;
         const match = videolink.match(regex);
         if (match) {
             const chatId = "-100" + match[1];
             const messageId = match[2];
-            const openTG = `https://t.me/<!-- Username -->?start=file_${messageId}${chatId}`;
-            window.location.href = openTG;
+            window.location.href = `https://t.me/<!-- Username -->?start=file_${messageId}${chatId}`;
         }
     }
+
     function copyUrl() {
-        const url = downloadlink;
-        navigator.clipboard.writeText(url)
-            .then(() => {
-                alert('URL copied to clipboard!');
-            })
-            .catch((error) => {
-                console.error('Failed to copy URL: ', error);
-            });
+        navigator.clipboard.writeText(downloadlink)
+            .then(() => alert('URL copied to clipboard!'))
+            .catch(err => console.error('Failed to copy: ', err));
     }
+
     function updateVideoSource() {
         const videoElement = document.getElementById('player');
         const source = videoElement.querySelector('source');
@@ -247,9 +281,8 @@
         source.type = 'video/mp4';
         videoElement.load();
     }
-    window.onload = function () {
-        updateVideoSource();
-    };
+
+    window.onload = updateVideoSource;
 </script>
 
 </html>
