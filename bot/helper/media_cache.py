@@ -179,6 +179,7 @@ class MediaCache:
                 chunk_size = 1024 * 1024  # 1MB chunks
                 offset = 0
                 total_written = 0
+                last_logged_percent = 0
                 
                 with open(file_path, 'wb') as f:
                     async for chunk in current_tg_connect.yield_file(
@@ -188,6 +189,13 @@ class MediaCache:
                         if chunk:
                             f.write(chunk)
                             total_written += len(chunk)
+                            
+                            # Log progress every 10%
+                            if file_size > 0:
+                                current_percent = int((total_written / file_size) * 100)
+                                if current_percent >= last_logged_percent + 10 or current_percent == 100:
+                                    logging.info(f"Downloading [{file_name}]: {current_percent}% ({total_written / 1024 / 1024:.1f}MB / {file_size / 1024 / 1024:.1f}MB)")
+                                    last_logged_percent = current_percent
                 
                 # Verify file size
                 if file_path.exists():
