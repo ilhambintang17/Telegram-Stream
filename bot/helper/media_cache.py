@@ -46,6 +46,7 @@ class MediaCache:
         self.max_size_bytes = 0
         self.collection = None
         self.downloading: Set[str] = set()  # Track files being downloaded
+        self._download_lock = asyncio.Lock()  # Lock for atomic check-and-add
         
         try:
             if not Telegram.CACHE_ENABLED:
@@ -97,20 +98,23 @@ class MediaCache:
         
         cache_key = self._generate_cache_key(chat_id, msg_id, secure_hash)
         
-        # Skip if already downloading or cached
-        if cache_key in self.downloading:
-            logging.debug(f"Already downloading: {file_name}")
-            return
+        # Use lock to prevent race condition (atomic check-and-add)
+        async with self._download_lock:
+            # Skip if already downloading or cached
+            if cache_key in self.downloading:
+                logging.debug(f"Already downloading: {file_name}")
+                return
+            
+            if self.is_cached(chat_id, msg_id, secure_hash):
+                logging.debug(f"Already cached: {file_name}")
+                return
+            
+            if not self._is_cacheable(mime_type, file_name):
+                return
+            
+            # Mark as downloading INSIDE the lock
+            self.downloading.add(cache_key)
         
-        if self.is_cached(chat_id, msg_id, secure_hash):
-            logging.debug(f"Already cached: {file_name}")
-            return
-        
-        if not self._is_cacheable(mime_type, file_name):
-            return
-        
-        # Mark as downloading
-        self.downloading.add(cache_key)
         logging.info(f"Starting background download: {file_name} ({file_size / 1024 / 1024:.1f}MB)")
         
         # Start async download task
