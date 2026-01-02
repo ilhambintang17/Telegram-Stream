@@ -182,8 +182,9 @@ async def send_route(request):
 async def reload_route(request):
     import time
     session = await get_session(request)
-    if (username := session.get('user')) != Telegram.ADMIN_USERNAME:
-        return web.json_response({'msg': 'Who the hell you are'})
+    # Allow any authenticated user to refresh
+    if not session.get('user'):
+        return web.json_response({'msg': 'Please login first'})
 
     chat_id = request.query.get('chatId', '')
     # Add timestamp to bypass Cloudflare cache
