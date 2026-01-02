@@ -180,26 +180,20 @@ async def send_route(request):
 
 @routes.get('/reload')
 async def reload_route(request):
-    import time
     session = await get_session(request)
-    # Allow any authenticated user to refresh
-    if not session.get('user'):
-        return web.json_response({'msg': 'Please login first'})
+    if (username := session.get('user')) != Telegram.ADMIN_USERNAME:
+        return web.json_response({'msg': 'Who the hell you are'})
 
     chat_id = request.query.get('chatId', '')
-    # Add timestamp to bypass Cloudflare cache
-    cache_bust = int(time.time())
-    
     if chat_id == 'home':
         rm_cache()
-        response = web.HTTPFound(f'/?_={cache_bust}')
+        response = web.HTTPFound('/')
     else:
         rm_cache(f"-100{chat_id}")
-        response = web.HTTPFound(f'/channel/{chat_id}?_={cache_bust}')
+        response = web.HTTPFound(f'/channel/{chat_id}')
     
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
-    response.headers['CDN-Cache-Control'] = 'no-store'
     return response
 
 
