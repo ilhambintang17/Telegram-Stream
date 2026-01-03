@@ -26,4 +26,4 @@ class Telegram:
     # Media Cache Settings
     CACHE_ENABLED = getenv('CACHE_ENABLED', 'True').lower() == 'true'
     CACHE_DIR = getenv('CACHE_DIR', '/app/media_cache')
-    CACHE_MAX_SIZE_GB = int(getenv('CACHE_MAX_SIZE_GB', '80'))
+    CACHE_MAX_SIZE_GB = int(getenv('CACHE_MAX_SIZE_GB', '150'))
