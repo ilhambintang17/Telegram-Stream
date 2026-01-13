@@ -354,6 +354,8 @@
     </footer>
     <!-- Plyr JS -->
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <!-- SubtitlesOctopus for MKV embedded subtitles -->
+    <script src="/static/subtitles/subtitles-octopus-worker.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Construct the correct stream/download URL: /chat_id/filename?id=...
@@ -396,7 +398,92 @@
                 settings: ['captions', 'quality', 'speed'],
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] }
             });
+
+            // Initialize SubtitlesOctopus for MKV embedded subtitles
+            initSubtitles(videoPlayer, chatId, searchParams);
         });
+
+        // SubtitlesOctopus initialization
+        let octopusInstance = null;
+
+        async function initSubtitles(videoElement, chatId, searchParams) {
+            // Check if file is MKV (might have subtitles)
+            const filename = "<!-- Filename -->";
+            const isMkv = filename.toLowerCase().endsWith('.mkv');
+
+            if (!isMkv) {
+                console.log('Not an MKV file, skipping subtitle extraction');
+                return;
+            }
+
+            // Subtitle API URL
+            const subtitleUrl = `${window.location.origin}/api/subtitle/${chatId}${searchParams}`;
+
+            try {
+                console.log('Fetching subtitles from:', subtitleUrl);
+
+                const response = await fetch(subtitleUrl);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.log('No subtitle track found in video');
+                    } else {
+                        console.warn('Subtitle fetch failed:', response.status);
+                    }
+                    return;
+                }
+
+                const subtitleText = await response.text();
+                console.log('Subtitle loaded, size:', subtitleText.length, 'bytes');
+
+                // Initialize SubtitlesOctopus
+                if (typeof SubtitlesOctopus !== 'undefined') {
+                    // Destroy previous instance if exists
+                    if (octopusInstance) {
+                        octopusInstance.dispose();
+                    }
+
+                    octopusInstance = new SubtitlesOctopus({
+                        video: videoElement,
+                        subContent: subtitleText,
+                        workerUrl: '/static/subtitles/subtitles-octopus-worker.js',
+                        legacyWorkerUrl: '/static/subtitles/subtitles-octopus-worker.js',
+                        // Rendering options
+                        prescaleFactor: 0.8,
+                        prescaleHeightLimit: 1080,
+                        maxRenderHeight: 1080,
+                        renderMode: 'wasm-blend',
+                        dropAllAnimations: false,
+                        debug: false,
+                        onReady: function () {
+                            console.log('SubtitlesOctopus ready!');
+                            showSubtitleStatus('Subtitles loaded');
+                        },
+                        onError: function (error) {
+                            console.error('SubtitlesOctopus error:', error);
+                        }
+                    });
+                } else {
+                    console.warn('SubtitlesOctopus library not loaded');
+                }
+
+            } catch (error) {
+                console.error('Error loading subtitles:', error);
+            }
+        }
+
+        function showSubtitleStatus(message) {
+            const statusEl = document.getElementById('status-text');
+            if (statusEl) {
+                const originalText = statusEl.textContent;
+                statusEl.textContent = message;
+                statusEl.classList.add('text-green-400');
+                setTimeout(() => {
+                    statusEl.textContent = originalText;
+                    statusEl.classList.remove('text-green-400');
+                }, 3000);
+            }
+        }
 
         function skip(amount) {
             if (window.player) {

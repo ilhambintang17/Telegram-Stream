@@ -19,6 +19,8 @@ from bot.server.custom_dl import ByteStreamer
 from bot.server.render_template import render_page
 from bot.helper.cache import rm_cache
 from bot.helper.media_cache import media_cache
+from bot.helper.subtitle_cache import subtitle_cache
+from bot.helper.subtitle_extractor import extract_subtitle_from_telegram, get_subtitle_track_list
 
 from bot.telegram import StreamBot
 
@@ -331,6 +333,181 @@ async def get_thumbnail(request):
     response = web.FileResponse(img)
     response.content_type = "image/jpeg"
     return response
+
+
+@routes.get('/api/subtitle/{chat_id}')
+async def get_subtitle(request):
+    """Extract and serve subtitle from MKV file."""
+    session = await get_session(request)
+    if not session.get('user'):
+        return web.HTTPUnauthorized(text="Login required")
+    
+    try:
+        chat_id = request.match_info['chat_id']
+        if not chat_id.startswith("-100"):
+            chat_id = f"-100{chat_id}"
+        
+        message_id = request.query.get('id')
+        secure_hash = request.query.get('hash')
+        track_index = int(request.query.get('track', '0'))
+        
+        if not message_id or not secure_hash:
+            return web.HTTPBadRequest(text="Missing id or hash parameter")
+        
+        # Check cache first
+        cached_path = subtitle_cache.get_cached_subtitle(
+            int(chat_id), int(message_id), secure_hash, track_index
+        )
+        
+        if cached_path:
+            return web.FileResponse(
+                cached_path,
+                headers={
+                    "Content-Type": "text/plain; charset=utf-8",
+                    "Content-Disposition": "inline",
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "public, max-age=86400",
+                    "X-Subtitle-Cache": "HIT"
+                }
+            )
+        
+        # Not cached - need to extract
+        # Acquire lock to prevent duplicate extraction
+        lock = await subtitle_cache.get_lock(int(chat_id), int(message_id), secure_hash)
+        
+        async with lock:
+            # Check cache again (another request might have completed extraction)
+            cached_path = subtitle_cache.get_cached_subtitle(
+                int(chat_id), int(message_id), secure_hash, track_index
+            )
+            if cached_path:
+                return web.FileResponse(
+                    cached_path,
+                    headers={
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "Content-Disposition": "inline",
+                        "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=86400",
+                        "X-Subtitle-Cache": "HIT"
+                    }
+                )
+            
+            # Mark as processing
+            subtitle_cache.mark_processing(int(chat_id), int(message_id), secure_hash, True)
+            
+            try:
+                # Get file properties
+                index = min(work_loads, key=work_loads.get)
+                faster_client = multi_clients[index]
+                
+                if faster_client in class_cache:
+                    tg_connect = class_cache[faster_client]
+                else:
+                    tg_connect = ByteStreamer(faster_client)
+                    class_cache[faster_client] = tg_connect
+                
+                file_id = await tg_connect.get_file_properties(
+                    chat_id=int(chat_id), message_id=int(message_id)
+                )
+                
+                if file_id.unique_id[:6] != secure_hash:
+                    raise InvalidHash
+                
+                file_size = file_id.file_size
+                
+                # Extract subtitle
+                logging.info(f"Extracting subtitle for {chat_id}/{message_id}")
+                subtitle_content = await extract_subtitle_from_telegram(
+                    int(chat_id), int(message_id), secure_hash,
+                    file_id, file_size, tg_connect, index, track_index
+                )
+                
+                if not subtitle_content:
+                    return web.HTTPNotFound(text="No subtitle track found in video")
+                
+                # Cache the result
+                await subtitle_cache.cache_subtitle(
+                    int(chat_id), int(message_id), secure_hash,
+                    subtitle_content, track_index
+                )
+                
+                return web.Response(
+                    body=subtitle_content,
+                    content_type="text/plain; charset=utf-8",
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=86400",
+                        "X-Subtitle-Cache": "MISS"
+                    }
+                )
+                
+            finally:
+                subtitle_cache.mark_processing(int(chat_id), int(message_id), secure_hash, False)
+    
+    except InvalidHash:
+        return web.HTTPForbidden(text="Invalid hash")
+    except FIleNotFound:
+        return web.HTTPNotFound(text="File not found")
+    except Exception as e:
+        logging.error(f"Subtitle extraction error: {e}")
+        return web.HTTPInternalServerError(text=str(e))
+
+
+@routes.get('/api/subtitle-tracks/{chat_id}')
+async def get_subtitle_tracks(request):
+    """Get list of available subtitle tracks in a video."""
+    session = await get_session(request)
+    if not session.get('user'):
+        return web.HTTPUnauthorized(text="Login required")
+    
+    try:
+        chat_id = request.match_info['chat_id']
+        if not chat_id.startswith("-100"):
+            chat_id = f"-100{chat_id}"
+        
+        message_id = request.query.get('id')
+        secure_hash = request.query.get('hash')
+        
+        if not message_id or not secure_hash:
+            return web.HTTPBadRequest(text="Missing id or hash parameter")
+        
+        # Get file properties
+        index = min(work_loads, key=work_loads.get)
+        faster_client = multi_clients[index]
+        
+        if faster_client in class_cache:
+            tg_connect = class_cache[faster_client]
+        else:
+            tg_connect = ByteStreamer(faster_client)
+            class_cache[faster_client] = tg_connect
+        
+        file_id = await tg_connect.get_file_properties(
+            chat_id=int(chat_id), message_id=int(message_id)
+        )
+        
+        if file_id.unique_id[:6] != secure_hash:
+            raise InvalidHash
+        
+        file_size = file_id.file_size
+        
+        # Get track list
+        tracks = await get_subtitle_track_list(
+            int(chat_id), int(message_id), secure_hash,
+            file_id, file_size, tg_connect, index
+        )
+        
+        return web.json_response({
+            "tracks": tracks,
+            "count": len(tracks)
+        })
+    
+    except InvalidHash:
+        return web.HTTPForbidden(text="Invalid hash")
+    except FIleNotFound:
+        return web.HTTPNotFound(text="File not found")
+    except Exception as e:
+        logging.error(f"Subtitle tracks error: {e}")
+        return web.HTTPInternalServerError(text=str(e))
 
 
 @routes.get('/watch/{chat_id}', allow_head=True)
