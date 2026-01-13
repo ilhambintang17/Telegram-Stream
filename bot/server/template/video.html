@@ -407,20 +407,26 @@
         let octopusInstance = null;
 
         async function initSubtitles(videoElement, chatId, searchParams, filename) {
+            console.log('[SUBTITLE DEBUG] initSubtitles called with:');
+            console.log('[SUBTITLE DEBUG] - filename:', filename);
+            console.log('[SUBTITLE DEBUG] - chatId:', chatId);
+            console.log('[SUBTITLE DEBUG] - searchParams:', searchParams);
+
             // Check if file is MKV (might have subtitles)
             const isMkv = filename.toLowerCase().endsWith('.mkv');
+            console.log('[SUBTITLE DEBUG] - isMkv:', isMkv);
 
             if (!isMkv) {
-                console.log('Not an MKV file, skipping subtitle extraction');
+                console.log('[SUBTITLE DEBUG] Not an MKV file, skipping subtitle extraction');
                 return;
             }
 
             // Subtitle API URL
             const subtitleUrl = `${window.location.origin}/api/subtitle/${chatId}${searchParams}`;
+            console.log('[SUBTITLE DEBUG] Fetching subtitle from:', subtitleUrl);
 
             try {
-                console.log('Fetching subtitles from:', subtitleUrl);
-
+                console.log('[SUBTITLE DEBUG] Starting fetch...');
                 const response = await fetch(subtitleUrl);
 
                 if (!response.ok) {
