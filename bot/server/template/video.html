@@ -400,15 +400,14 @@
             });
 
             // Initialize SubtitlesOctopus for MKV embedded subtitles
-            initSubtitles(videoPlayer, chatId, searchParams);
+            initSubtitles(videoPlayer, chatId, searchParams, rawFilename);
         });
 
         // SubtitlesOctopus initialization
         let octopusInstance = null;
 
-        async function initSubtitles(videoElement, chatId, searchParams) {
+        async function initSubtitles(videoElement, chatId, searchParams, filename) {
             // Check if file is MKV (might have subtitles)
-            const filename = "<!-- Filename -->";
             const isMkv = filename.toLowerCase().endsWith('.mkv');
 
             if (!isMkv) {
