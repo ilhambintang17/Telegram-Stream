@@ -327,3 +327,44 @@ async def get_subtitle_track_list(
             os.rmdir(temp_dir)
         except:
             pass
+
+
+async def extract_subtitle_from_local_file(
+    video_path: Path,
+    track_index: int = 0
+) -> Optional[bytes]:
+    """
+    Extract subtitle from a local video file.
+    Does NOT require a Telegram download.
+    """
+    temp_dir = tempfile.mkdtemp(prefix="subtitle_local_")
+    subtitle_path = Path(temp_dir) / "subtitle.ass"
+    
+    try:
+        # Detect tracks
+        tracks = await detect_subtitle_tracks(video_path)
+        if not tracks:
+            logging.info(f"No subtitle tracks found in {video_path}")
+            return None
+        
+        # Select track
+        if track_index >= len(tracks):
+            track_index = 0
+        
+        target_track = tracks[track_index]
+        logging.info(f"Extracting local subtitle track: {target_track}")
+        
+        # Extract
+        success = await extract_subtitle(video_path, target_track.index, subtitle_path)
+        if not success:
+            return None
+            
+        return subtitle_path.read_bytes()
+        
+    finally:
+        try:
+            if subtitle_path.exists():
+                subtitle_path.unlink()
+            os.rmdir(temp_dir)
+        except Exception as e:
+            logging.warning(f"Failed to cleanup temp files: {e}")

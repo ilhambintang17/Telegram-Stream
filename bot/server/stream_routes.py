@@ -20,7 +20,7 @@ from bot.server.render_template import render_page
 from bot.helper.cache import rm_cache
 from bot.helper.media_cache import media_cache
 from bot.helper.subtitle_cache import subtitle_cache
-from bot.helper.subtitle_extractor import extract_subtitle_from_telegram, get_subtitle_track_list
+from bot.helper.subtitle_extractor import extract_subtitle_from_telegram, get_subtitle_track_list, extract_subtitle_from_local_file
 
 from bot.telegram import StreamBot
 
@@ -415,12 +415,19 @@ async def get_subtitle(request):
                 
                 file_size = file_id.file_size
                 
-                # Extract subtitle
-                logging.info(f"Extracting subtitle for {chat_id}/{message_id}")
-                subtitle_content = await extract_subtitle_from_telegram(
-                    int(chat_id), int(message_id), secure_hash,
-                    file_id, file_size, tg_connect, index, track_index
-                )
+                # Check for cached video file first
+                cached_video_path = media_cache.get_cached_path(int(chat_id), int(message_id), secure_hash)
+                
+                if cached_video_path:
+                    logging.info(f"Subtitle extraction: Using local cached video {cached_video_path}")
+                    subtitle_content = await extract_subtitle_from_local_file(cached_video_path, track_index)
+                else:
+                    # Extract subtitle from Telegram (Partial Download)
+                    logging.info(f"Subtitle extraction: Downloading from Telegram {chat_id}/{message_id}")
+                    subtitle_content = await extract_subtitle_from_telegram(
+                        int(chat_id), int(message_id), secure_hash,
+                        file_id, file_size, tg_connect, index, track_index
+                    )
                 
                 if not subtitle_content:
                     return web.HTTPNotFound(text="No subtitle track found in video")
