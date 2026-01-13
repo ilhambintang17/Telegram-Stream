@@ -433,7 +433,8 @@ async def get_subtitle(request):
                 
                 return web.Response(
                     body=subtitle_content,
-                    content_type="text/plain; charset=utf-8",
+                    content_type="text/plain",
+                    charset="utf-8",
                     headers={
                         "Access-Control-Allow-Origin": "*",
                         "Cache-Control": "public, max-age=86400",
