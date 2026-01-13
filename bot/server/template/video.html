@@ -435,6 +435,7 @@
 
                 const subtitleText = await response.text();
                 console.log('Subtitle loaded, size:', subtitleText.length, 'bytes');
+                console.log('Subtitle content preview:', subtitleText.substring(0, 500));
 
                 // Initialize SubtitlesOctopus
                 if (typeof SubtitlesOctopus !== 'undefined') {
@@ -443,18 +444,23 @@
                         octopusInstance.dispose();
                     }
 
+                    console.log('Initializing SubtitlesOctopus...');
                     octopusInstance = new SubtitlesOctopus({
                         video: videoElement,
                         subContent: subtitleText,
                         workerUrl: '/static/subtitles/subtitles-octopus-worker.js',
                         legacyWorkerUrl: '/static/subtitles/subtitles-octopus-worker.js',
+                        // Use available fonts from subtitle file style, no fallback needed
+                        availableFonts: {
+                            'liberation sans': 'https://cdn.jsdelivr.net/npm/liberation-fonts@2.1.4/woff2/LiberationSans-Regular.woff2'
+                        },
                         // Rendering options
                         prescaleFactor: 0.8,
                         prescaleHeightLimit: 1080,
                         maxRenderHeight: 1080,
                         renderMode: 'wasm-blend',
                         dropAllAnimations: false,
-                        debug: false,
+                        debug: true,  // Enable debug for troubleshooting
                         onReady: function () {
                             console.log('SubtitlesOctopus ready!');
                             showSubtitleStatus('Subtitles loaded');
@@ -463,6 +469,7 @@
                             console.error('SubtitlesOctopus error:', error);
                         }
                     });
+                    console.log('SubtitlesOctopus instance created');
                 } else {
                     console.warn('SubtitlesOctopus library not loaded');
                 }
