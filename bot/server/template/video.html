@@ -156,6 +156,85 @@
         .delay-300 {
             animation-delay: 300ms;
         }
+
+        /* Mobile Double-Tap Skip Zones */
+        .skip-zone {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40%;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .skip-zone.left {
+            left: 0;
+            border-radius: 0 50% 50% 0;
+        }
+
+        .skip-zone.right {
+            right: 0;
+            border-radius: 50% 0 0 50%;
+        }
+
+        .skip-feedback {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .skip-zone.active .skip-feedback {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .skip-zone.active {
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+            animation: skipRipple 0.5s ease-out;
+        }
+
+        @keyframes skipRipple {
+            0% {
+                background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 30%);
+            }
+
+            100% {
+                background: radial-gradient(circle at center, rgba(255, 255, 255, 0) 0%, transparent 70%);
+            }
+        }
+
+        .skip-feedback .material-symbols-outlined {
+            font-size: 48px;
+            margin-bottom: 4px;
+        }
+
+        .skip-feedback .skip-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Show skip zones only on mobile/touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .skip-zone {
+                display: flex;
+            }
+        }
+
+        /* Fullscreen video container adjustments */
+        .plyr--fullscreen-fallback .skip-zone,
+        .plyr--fullscreen .skip-zone {
+            display: flex;
+        }
     </style>
 </head>
 
@@ -188,11 +267,22 @@
     <main class="flex-grow pt-20 pb-12 sm:px-6">
         <div class="max-w-6xl mx-auto flex flex-col gap-4 sm:gap-8">
             <!-- Video Player Section -->
-            <div
+            <div id="video-container"
                 class="w-full aspect-video bg-black rounded-none sm:rounded-xl relative group animate-enter z-10 overflow-hidden shadow-2xl">
-                <video class="w-full h-full object-contain" controls="" id="player" playsinline="">
-                    <!-- The source will be set by JS via window.location -->
-                </video>
+                <video class="w-full h-full object-contain" controls="" id="player" playsinline=""></video>
+                <!-- Mobile Double-Tap Skip Zones -->
+                <div id="skip-gesture-left" class="skip-zone left">
+                    <div class="skip-feedback">
+                        <span class="material-symbols-outlined">replay_10</span>
+                        <span class="skip-text">-10s</span>
+                    </div>
+                </div>
+                <div id="skip-gesture-right" class="skip-zone right">
+                    <div class="skip-feedback">
+                        <span class="material-symbols-outlined">forward_10</span>
+                        <span class="skip-text">+10s</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Content Wrapper with Padding for Mobile -->
@@ -399,9 +489,108 @@
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] }
             });
 
+            // Mobile Detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+
+            // Auto-rotate to landscape on fullscreen (mobile only)
+            window.player.on('enterfullscreen', () => {
+                if (isMobile && screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {
+                        console.log('Orientation lock not supported:', err.message);
+                    });
+                }
+            });
+
+            window.player.on('exitfullscreen', () => {
+                if (isMobile && screen.orientation && screen.orientation.unlock) {
+                    try {
+                        screen.orientation.unlock();
+                    } catch (err) {
+                        console.log('Orientation unlock not supported:', err.message);
+                    }
+                }
+            });
+
+            // Double-Tap Skip Detection
+            initDoubleTapSkip();
+
             // Initialize SubtitlesOctopus for MKV embedded subtitles
             initSubtitles(videoPlayer, chatId, searchParams, rawFilename);
         });
+
+        // Double-Tap Skip Functionality
+        function initDoubleTapSkip() {
+            const videoContainer = document.getElementById('video-container');
+            const leftZone = document.getElementById('skip-gesture-left');
+            const rightZone = document.getElementById('skip-gesture-right');
+
+            if (!videoContainer || !leftZone || !rightZone) return;
+
+            let lastTap = { time: 0, x: 0, y: 0 };
+            const DOUBLE_TAP_THRESHOLD = 300; // milliseconds
+            const TAP_DISTANCE_THRESHOLD = 50; // pixels
+
+            function handleTap(e) {
+                // Ignore if clicking on controls
+                if (e.target.closest('.plyr__controls') || e.target.closest('.plyr__control')) {
+                    return;
+                }
+
+                const now = Date.now();
+                const touch = e.changedTouches ? e.changedTouches[0] : e;
+                const x = touch.clientX || touch.pageX;
+                const y = touch.clientY || touch.pageY;
+
+                const timeDiff = now - lastTap.time;
+                const xDiff = Math.abs(x - lastTap.x);
+                const yDiff = Math.abs(y - lastTap.y);
+
+                // Check if this is a double tap (fast enough and close enough)
+                if (timeDiff < DOUBLE_TAP_THRESHOLD && xDiff < TAP_DISTANCE_THRESHOLD && yDiff < TAP_DISTANCE_THRESHOLD) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const rect = videoContainer.getBoundingClientRect();
+                    const relativeX = x - rect.left;
+                    const isLeftSide = relativeX < rect.width / 2;
+
+                    if (isLeftSide) {
+                        skip(-10);
+                        showSkipFeedback('left');
+                    } else {
+                        skip(10);
+                        showSkipFeedback('right');
+                    }
+
+                    // Reset to prevent triple-tap
+                    lastTap = { time: 0, x: 0, y: 0 };
+                } else {
+                    lastTap = { time: now, x: x, y: y };
+                }
+            }
+
+            // Use touchend for mobile
+            videoContainer.addEventListener('touchend', handleTap, { passive: false });
+
+            // Also handle click for desktop testing with touch simulation
+            videoContainer.addEventListener('click', function (e) {
+                // Only process if not a touch device (to avoid double handling)
+                if (!('ontouchend' in window)) {
+                    handleTap(e);
+                }
+            });
+        }
+
+        function showSkipFeedback(side) {
+            const zone = document.getElementById(`skip-gesture-${side}`);
+            if (!zone) return;
+
+            zone.classList.add('active');
+            setTimeout(() => {
+                zone.classList.remove('active');
+            }, 500);
+        }
 
         // SubtitlesOctopus initialization
         let octopusInstance = null;
