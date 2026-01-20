@@ -167,7 +167,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            pointer-events: auto;
+            pointer-events: none;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -223,17 +223,11 @@
             font-weight: 600;
         }
 
-        /* Show skip zones only on mobile/touch devices */
-        @media (hover: none) and (pointer: coarse) {
-            .skip-zone {
-                display: flex;
-            }
-        }
-
-        /* Fullscreen video container adjustments */
+        /* ONLY show and enable skip zones in fullscreen mode */
         .plyr--fullscreen-fallback .skip-zone,
         .plyr--fullscreen .skip-zone {
             display: flex;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -532,6 +526,11 @@
             const TAP_DISTANCE_THRESHOLD = 50; // pixels
 
             function handleTap(e) {
+                // Only process in fullscreen mode
+                if (!window.player || !window.player.fullscreen || !window.player.fullscreen.active) {
+                    return;
+                }
+
                 // Ignore if clicking on controls
                 if (e.target.closest('.plyr__controls') || e.target.closest('.plyr__control')) {
                     return;
