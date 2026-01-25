@@ -647,7 +647,7 @@ async def admin_dashboard(request):
     from pymongo import DESCENDING
     cached_files_cursor = media_cache.collection.find().sort("last_access", DESCENDING).limit(50)
     cached_files = []
-    async for doc in cached_files_cursor:
+    for doc in cached_files_cursor:
         cached_files.append(doc)
     
     rows_html = ""
