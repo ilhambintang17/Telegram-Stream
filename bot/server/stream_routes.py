@@ -810,6 +810,11 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
                 chat_id, id, secure_hash, file_id, file_size,
                 mime_type, file_name, bg_tg_connect, bg_index
             )
+            
+            # TRIGGER SMART PRE-CACHING HERE TOO
+            # So if user watches Ep 1 (from Telegram), we start fetching Ep 2 immediately
+            asyncio.create_task(media_cache.smart_pre_cache(chat_id, file_name))
+
         else:
             logging.info(f"Download already in progress: {file_name}")
 
