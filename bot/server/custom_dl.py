@@ -15,7 +15,7 @@ class ByteStreamer:
     def __init__(self, client: Client):
         self.clean_timer = 30 * 60
         self.client: Client = client
-        self.__cached_file_ids: Dict[int, FileId] = {}
+        self.__cached_file_ids: Dict[str, FileId] = {}
         asyncio.create_task(self.clean_cache())
 
     async def get_file_properties(self, chat_id: int, message_id: int) -> FileId:

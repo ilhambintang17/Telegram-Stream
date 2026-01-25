@@ -148,6 +148,9 @@ async def searchDbFolder_route(request):
 
 @routes.post('/send')
 async def send_route(request):
+    session = await get_session(request)
+    if (username := session.get('user')) != Telegram.ADMIN_USERNAME:
+        return web.json_response({'msg': 'Who the hell you are'})
     data = await request.post()
     chat_id = data.get('chatId')
     chat_id = f"-100{chat_id}"
@@ -171,9 +174,7 @@ async def send_route(request):
             'type': 'file'
         })
 
-    json_data = json.dumps(formatted_entries)
-    data = json.loads(json_data)
-    await db.add_json(data)
+    await db.add_json(formatted_entries)
     if folder_id == 'root':
         return web.HTTPFound('/')
     else:
@@ -712,11 +713,8 @@ async def media_streamer(request: web.Request, chat_id: int, id: int, secure_has
             headers={"Content-Range": f"bytes */{file_size}"},
         )
 
-    # Dynamic chunk size: 2MB for video for faster throughput, 1MB for others
-    if mime_type and isinstance(mime_type, str) and mime_type.startswith('video/'):
-        chunk_size = 1024 * 1024  # 1MB (Telegram max limit)
-    else:
-        chunk_size = 1024 * 1024  # 1MB for other files
+    # Chunk size: Telegram API max limit is 1MB
+    chunk_size = 1024 * 1024  # 1MB for all files
 
     until_bytes = min(until_bytes, file_size - 1)
 
