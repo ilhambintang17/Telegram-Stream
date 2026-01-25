@@ -605,9 +605,15 @@ class MediaCache:
         # Regex to find episode number (supports 01, 1, etc.)
         # Groups: 1=Prefix, 2=EpisodeNum, 3=Suffix
         patterns = [
-            r'(.* - )(\d{2,3})( \[.*)',     # Title - 04 [1080p]
-            r'(.*--)(\d{2,3})(.*)',         # Title--04 720p or Title--04
-            r'(.* )(\d{1,3})( .*)'          # Generic Title 04 Suffix
+            # Pattern: "Title - 04 [1080p]..."
+            r'(.* - )(\d{2,3})( \[.*)',     
+            # Pattern: "Title--12 End 720p" or "Title--11 720p"
+            # Matches prefix ending in --, then digits, then optional " End", then resolution
+            r'(.*--)(\d{2,3})((?: End)? \d{3,4}p)', 
+            # Pattern: "Title--04" (simple)
+            r'(.*--)(\d{2,3})(.*)',         
+            # Generic fallback: "Title 04 Suffix"
+            r'(.* )(\d{1,3})( .*)'          
         ]
         
         next_filename_pattern = None
