@@ -642,25 +642,19 @@ class MediaCache:
             logging.debug("Smart Pre-Caching: Could not predict next episode pattern.")
             return
 
-        # Search for Next Episode in Database
-        db = Database()
-        # Use regex search to find the file
-        # Note: Depending on DB volume, simple regex might be slow without text index.
-        # But this runs in background task.
-        found_files = await db.search_tgfiles(chat_id, next_filename_pattern, page=1, per_page=1)
-        
-        if not found_files:
-             # Also try searching in 'files' collection by regex directly if search_tgfiles abstraction is limited
-             # But let's assume search_tgfiles works with regex query we constructed
-             # Wait, search_tgfiles implementation splits query by space. 
-             # We should probably use a direct find here for precision.
-             pass
-
-        # Let's retry direct DB find for precision since search_tgfiles does token splitting
         try:
+            # Search for Next Episode in Database
+            # Search for Next Episode in Database
+            db = Database()
+            
+            # 1. Try DB Search
             regex_query = {"chat_id": str(chat_id), "title": {"$regex": next_filename_pattern, "$options": "i"}}
             next_file = await db.files.find_one(regex_query)
             
+            if not next_file:
+                 logging.info("Smart Pre-Caching: Next episode not found in DB. Searching in Telegram Channel...")
+                 next_file = await self._search_in_telegram(chat_id, next_filename_pattern, prefix, next_ep_str)
+
             if next_file:
                 logging.info(f"Smart Pre-Caching: Found next episode: {next_file.get('title')}")
                 # Check if already cached
@@ -668,22 +662,75 @@ class MediaCache:
                 next_hash = next_file['hash']
                 
                 if self.is_cached(chat_id, next_msg_id, next_hash):
-                     logging.info("Smart Pre-Caching: Next episode is already cached. Skipping.")
-                     return
+                        logging.info("Smart Pre-Caching: Next episode is already cached. Skipping.")
+                        return
 
-                # Check if already downloading using is_downloading check in start_background_download
-                # We need file_id and info to start download
-                # We need to construct a "fake" file_id object or fetch it from Telegram
-                # Fetching properties is needed.
-                
-                # We spawn a background task to fetch props and start download
+                # Trigger download
                 asyncio.create_task(self._trigger_pre_download(chat_id, next_msg_id, next_hash, next_file['title']))
                 
             else:
-                logging.info("Smart Pre-Caching: Next episode not found in DB.")
+                logging.info("Smart Pre-Caching: Next episode not found in Telegram Channel.")
                 
         except Exception as e:
             logging.error(f"Smart Pre-Caching Error: {e}")
+
+    async def _search_in_telegram(self, chat_id, pattern, prefix, next_ep_str):
+        """Search for file in Telegram using UserBot or StreamBot."""
+        from bot.telegram import UserBot, StreamBot
+        from bot.config import Telegram as Config
+        import re
+        from bot.helper.database import Database
+        
+        # Determine query string (Prefix + Next Episode Number)
+        # e.g. "Title - 05"
+        query = f"{prefix}{next_ep_str}"
+        query = query.strip()
+        
+        client = UserBot if len(Config.SESSION_STRING) > 0 else StreamBot
+        
+        try:
+            # Search messages in chat
+            async for message in client.search_messages(chat_id, query=query, limit=20):
+                if not message: continue
+                
+                file = message.video or message.document or message.audio
+                if not file: continue
+                
+                filename = file.file_name or message.caption or ""
+                if not filename: continue
+                
+                # Check regex match
+                if re.match(pattern, filename, re.IGNORECASE):
+                     logging.info(f"Smart Pre-Caching: Found file in Telegram: {filename}")
+                     
+                     # Extract file info
+                     file_size = file.file_size
+                     file_unique_id = file.file_unique_id
+                     mime_type = file.mime_type
+                     
+                     # Index to DB for future speed
+                     db = Database()
+                     await db.add_tgfiles(
+                         str(chat_id), 
+                         message.id, 
+                         file_unique_id[:6], 
+                         filename, 
+                         str(file_size), # DB expects string size often? or int. Let's check db.add_tgfiles
+                         mime_type
+                     )
+                     
+                     return {
+                         "msg_id": message.id,
+                         "hash": file_unique_id[:6],
+                         "title": filename,
+                         "size": file_size,
+                         "chat_id": str(chat_id)
+                     }
+        except Exception as e:
+            logging.error(f"Telegram Search Error: {e}")
+            return None
+        
+        return None
 
     async def _trigger_pre_download(self, chat_id, msg_id, secure_hash, filename):
         """Helper to fetch props and start download for pre-caching."""
