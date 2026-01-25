@@ -15,8 +15,10 @@ from bot.helper.subtitle_cache import subtitle_cache
 LOGGER.info(f"Media cache module loaded, enabled={media_cache.enabled}")
 
 import uvloop
+import asyncio
 uvloop.install()
-loop = get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 async def start_services():
     LOGGER.info(f'Initializing Surf-TG v-{__version__}')

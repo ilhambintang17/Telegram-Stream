@@ -238,35 +238,33 @@ class MediaCache:
                     if file_path.exists():
                         file_path.unlink()
                         
+                # If we get here, other exceptions are caught below
+                
             except Exception as e:
                 err_str = str(e)
+                logging.error(f"Download attempt failed (Client {current_client_index}): {e}")
+                
+                 # Explicit cleanup on failure
+                if file_path.exists():
+                     try:
+                        file_path.unlink()
+                     except OSError:
+                        pass
+
                 if "FLOOD_WAIT" in err_str or "flood" in err_str.lower():
-                    wait_time = 5 # Default fallback
-                    # Try to extract wait time if possible, but simplest is just rotate
-                    logging.warning(f"FloodWait on Client {current_client_index}: {e}. Switching client...")
-                    
+                    logging.warning(f"FloodWait on Client {current_client_index}. Switching...")
                     # Rotate Client
                     current_client_index = (current_client_index + 1) % len(multi_clients)
                     current_client = multi_clients[current_client_index]
                     current_tg_connect = ByteStreamer(current_client)
-                    
-                    # Small delay before retry
-                    await asyncio.sleep(1)
-                    continue # Try next client
-                
+                    await asyncio.sleep(2)
+                    continue 
+
                 elif isinstance(e, asyncio.CancelledError):
-                    logging.debug(f"Background download cancelled: {file_name}")
-                    if file_path.exists():
-                        file_path.unlink()
-                    break # Don't retry on cancel
+                    logging.info(f"Background download cancelled: {file_name}")
+                    break 
                 else:
-                    logging.error(f"Background download error (Client {current_client_index}): {e}")
-                    if file_path.exists():
-                        file_path.unlink()
-                    # Try next client for other errors too? Maybe.
-                    # For now, let's retry only on FloodWait or similar network issues.
-                    # But if "Client Request Interrupted" happens, maybe we should retry?
-                    # Let's retry for ANY exception that isn't Cancelled, up to max_retries
+                    # Retry for network errors
                     logging.info(f"Retrying with next client due to error...")
                     current_client_index = (current_client_index + 1) % len(multi_clients)
                     current_client = multi_clients[current_client_index]
