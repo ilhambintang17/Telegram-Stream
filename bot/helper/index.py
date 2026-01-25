@@ -56,39 +56,9 @@ async def get_files(chat_id, page=1):
                     "hash": file.file_unique_id[:6], "size": get_readable_file_size(file.file_size), 
                     "type": file.mime_type, "chat_id": str(chat_id)})
     
-    # Grouping Logic
-    grouped_posts = []
-    series_map = {}
+    from bot.helper.utils import group_posts_by_series
     
-    for post in raw_posts:
-        # Regex to detect part files: Name.part01.mp4 or Name part 1.mkv
-        match = re.search(r'(.*)[ ._]part(\d+)$', post['title'], re.IGNORECASE)
-        
-        if match:
-            series_name = match.group(1).strip()
-            part_number = int(match.group(2))
-            
-            if series_name not in series_map:
-                series_map[series_name] = []
-            
-            # Store part with its number
-            post['part_number'] = part_number
-            series_map[series_name].append(post)
-        else:
-            grouped_posts.append(post)
-            
-    # Process Grouped Series
-    for series_name, parts in series_map.items():
-        # Sort by part number
-        parts.sort(key=lambda x: x.get('part_number', 0))
-        
-        # Take the first part as representative
-        if parts:
-            representative = parts[0]
-            representative['is_series'] = True
-            representative['parts_count'] = len(parts)
-            representative['title'] = series_name # Use base name as title
-            grouped_posts.append(representative)
+    grouped_posts = group_posts_by_series(raw_posts, title_key='title')
     
     # Sort final list by message ID (descending usually, or maintain original flow)
     # The original list was by chat_history (latest first), so we should preserve that somewhat?

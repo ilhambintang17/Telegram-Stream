@@ -90,7 +90,7 @@ async def delete_route(request):
     data = await request.json()
     id = data.get('delete_id')
     parent = data.get('parent')
-    if not (success := db.delete(id)):
+    if not (success := await db.delete(id)):
         return web.HTTPInternalServerError()
     if parent == 'root':
         return web.HTTPFound('/')
@@ -532,7 +532,7 @@ async def stream_handler_watch(request: web.Request):
         except InvalidHash as e:
             raise web.HTTPForbidden(text=e.message) from e
         except FIleNotFound as e:
-            db.delete_file(chat_id=chat_id, msg_id=message_id, hash=secure_hash)
+            await db.delete_file(chat_id=chat_id, msg_id=message_id, hash=secure_hash)
             raise web.HTTPNotFound(text=e.message) from e
         except (AttributeError, BadStatusLine, ConnectionResetError):
             pass
@@ -556,7 +556,7 @@ async def stream_handler(request: web.Request):
     except InvalidHash as e:
         raise web.HTTPForbidden(text=e.message) from e
     except FIleNotFound as e:
-        db.delete_file(chat_id=chat_id, msg_id=message_id, hash=secure_hash)
+        await db.delete_file(chat_id=chat_id, msg_id=message_id, hash=secure_hash)
         raise web.HTTPNotFound(text=e.message) from e
     except (AttributeError, BadStatusLine, ConnectionResetError):
         pass

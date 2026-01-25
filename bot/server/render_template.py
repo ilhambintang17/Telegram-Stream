@@ -1,4 +1,5 @@
 import re
+import time
 from aiofiles import open as aiopen
 from os import path as ospath
 
@@ -27,8 +28,16 @@ hide_channel = """
                     </style>"""
 
 
+_theme_cache = {'value': None, 'time': 0}
+
 async def render_page(id, secure_hash, is_admin=False, html='', playlist='', database='', route='', redirect_url='', msg='', chat_id='', page=1):
-    theme = await db.get_variable('theme')
+    global _theme_cache
+    if _theme_cache['value'] and (time.time() - _theme_cache['time'] < 60):
+        theme = _theme_cache['value']
+    else:
+        theme = await db.get_variable('theme')
+        if theme:
+            _theme_cache = {'value': theme, 'time': time.time()}
     if theme is None or theme == '':
         theme = Telegram.THEME
     tpath = ospath.join('bot', 'server', 'template')

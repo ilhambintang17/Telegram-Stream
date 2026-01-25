@@ -60,39 +60,9 @@ async def post_playlist(playlists):
 async def posts_db_file(posts):
     import re
     
-    # Grouping Logic
-    grouped_posts = []
-    series_map = {}
+    from bot.helper.utils import group_posts_by_series
     
-    for post in posts:
-        # Regex to detect part files: Name.part01.mp4 or Name part 1.mkv
-        match = re.search(r'(.*)[ ._]part(\d+)$', post['name'], re.IGNORECASE)
-        
-        if match:
-            series_name = match.group(1).strip()
-            part_number = int(match.group(2))
-            
-            if series_name not in series_map:
-                series_map[series_name] = []
-            
-            # Store part with its number
-            post['part_number'] = part_number
-            series_map[series_name].append(post)
-        else:
-            grouped_posts.append(post)
-            
-    # Process Grouped Series
-    for series_name, parts in series_map.items():
-        # Sort by part number
-        parts.sort(key=lambda x: x.get('part_number', 0))
-        
-        # Take the first part as representative
-        if parts:
-            representative = parts[0]
-            representative['is_series'] = True
-            representative['parts_count'] = len(parts)
-            representative['name'] = series_name # Use base name as title
-            grouped_posts.append(representative)
+    grouped_posts = group_posts_by_series(posts, title_key='name')
     
     # Sorting (Optional: maintain original order or sort by name)
     # The incoming 'posts' might already be sorted by date. We generally append new series at the end or keep flow.
