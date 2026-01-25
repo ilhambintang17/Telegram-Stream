@@ -643,6 +643,36 @@ async def admin_dashboard(request):
     # Cache Stats
     cache_stats = await media_cache.cleanup() # Get stats without force cleanup
     
+    # Fetch Cached Files (Top 50 recently accessed)
+    from pymongo import DESCENDING
+    cached_files_cursor = media_cache.collection.find().sort("last_access", DESCENDING).limit(50)
+    cached_files = []
+    async for doc in cached_files_cursor:
+        cached_files.append(doc)
+    
+    rows_html = ""
+    if not cached_files:
+        rows_html = '<tr><td colspan="4" class="p-3 text-center">No files cached yet</td></tr>'
+    else:
+        for file in cached_files:
+            fname = file.get('file_name', 'Unknown') or 'Unknown'
+            # Truncate long filenames
+            if len(fname) > 50:
+                fname = fname[:47] + "..."
+                
+            fsize = get_readable_file_size(file.get('file_size', 0))
+            last_access = file.get('last_access').strftime("%Y-%m-%d %H:%M:%S") if file.get('last_access') else "N/A"
+            score = f"{file.get('score', 0):.1f}"
+            
+            rows_html += f"""
+            <tr class="hover:bg-white/5 transition">
+                <td class="p-3 font-medium text-gray-200">{fname}</td>
+                <td class="p-3">{fsize}</td>
+                <td class="p-3 text-gray-400">{last_access}</td>
+                <td class="p-3 text-blue-400">{score}</td>
+            </tr>
+            """
+
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -687,7 +717,7 @@ async def admin_dashboard(request):
             </div>
             
             <div class="glass rounded-xl p-6">
-                <h2 class="text-xl font-bold mb-4">Cached Files</h2>
+                <h2 class="text-xl font-bold mb-4">Cached Files (Top 50)</h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-gray-400">
                         <thead class="bg-white/5 text-gray-200 uppercase">
@@ -699,8 +729,7 @@ async def admin_dashboard(request):
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
-                             <!-- Loading via API recommended for large lists, but strictly here static for now -->
-                             <tr><td colspan="4" class="p-3 text-center">Use DB Client to view full list</td></tr>
+                             {rows_html}
                         </tbody>
                     </table>
                 </div>
