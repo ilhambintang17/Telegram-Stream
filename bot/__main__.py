@@ -24,6 +24,10 @@ async def start_services():
     LOGGER.info(f'Initializing Surf-TG v-{__version__}')
     await asleep(1.2)
     
+    # Initialize Database Indexes
+    from bot.helper.database import Database
+    await Database().create_indexes()
+    
     await StreamBot.start()
     StreamBot.username = StreamBot.me.username
     LOGGER.info(f"Bot Client : [@{StreamBot.username}]")

@@ -3,7 +3,7 @@ from pymongo import DESCENDING
 from bson import ObjectId
 from bot.config import Telegram
 import re
-
+import asyncio
 
 class Database:
     _instance = None
@@ -18,17 +18,43 @@ class Database:
         if self._initialized:
             return
         
-        MONGODB_URI = Telegram.DATABASE_URL
-        self.mongo_client = AsyncIOMotorClient(MONGODB_URI)
-        self.db = self.mongo_client["surftg"]
-        self.collection = self.db["playlist"]
-        self.config = self.db["config"]
-        self.files = self.db["files"]
+        # Defer client creation to avoid event loop mixing
+        self._client = None
+        self._db = None
         self._initialized = True
-        
+
+    @property
+    def mongo_client(self):
+        if self._client is None:
+            MONGODB_URI = Telegram.DATABASE_URL
+            self._client = AsyncIOMotorClient(MONGODB_URI)
+            # Motor 3.x+ automatically uses the running loop when operations are awaited
+        return self._client
+
+    @property
+    def db(self):
+        if self._db is None:
+            self._db = self.mongo_client["surftg"]
+        return self._db
+
+    @property
+    def collection(self):
+        return self.db["playlist"]
+
+    @property
+    def config(self):
+        return self.db["config"]
+
+    @property
+    def files(self):
+        return self.db["files"]
+
+    # Helper to ensure indexes are created (call this from __main__ or lazy check)
+    async def create_indexes(self):
         # Create Indexes
-        self.files.create_index([("title", "text"), ("chat_id", 1)])
-        self.collection.create_index([("name", "text"), ("parent_folder", 1)])
+        await self.files.create_index([("title", "text"), ("chat_id", 1)])
+        await self.collection.create_index([("name", "text"), ("parent_folder", 1)])
+
 
     async def create_folder(self, parent_id, folder_name, thumbnail):
         folder = {"parent_folder": parent_id, "name": folder_name,
