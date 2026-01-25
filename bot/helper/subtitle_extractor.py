@@ -160,7 +160,6 @@ async def download_partial_video(
     Returns:
         True if download successful, False otherwise
     """
-    from bot.telegram import work_loads
     
     try:
         # Calculate how much to download

@@ -10,6 +10,7 @@ from bot.server import web_server
 from bot.telegram import StreamBot, UserBot
 from bot.telegram.clients import initialize_clients
 from bot.helper.media_cache import media_cache
+from bot.helper.subtitle_cache import subtitle_cache
 
 LOGGER.info(f"Media cache module loaded, enabled={media_cache.enabled}")
 
@@ -52,6 +53,10 @@ async def start_services():
         LOGGER.info(f"Media cache enabled: max {Telegram.CACHE_MAX_SIZE_GB}GB at {media_cache.cache_dir}")
     else:
         LOGGER.info("Media cache is disabled")
+    
+    # Start subtitle cache cleanup background task
+    loop.create_task(subtitle_cache.periodic_cleanup())
+    LOGGER.info("Subtitle cache cleanup task started")
     
     await idle()
 

@@ -8,7 +8,7 @@ from typing import Dict, Union
 from bot.helper.exceptions import FIleNotFound
 from bot.server.file_properties import get_file_ids
 from bot.telegram import work_loads
-from pyrogram import Client, utils, raw
+from pyrogram import Client
 
 
 class ByteStreamer:
@@ -19,13 +19,14 @@ class ByteStreamer:
         asyncio.create_task(self.clean_cache())
 
     async def get_file_properties(self, chat_id: int, message_id: int) -> FileId:
-        if message_id not in self.__cached_file_ids:
+        cache_key = f"{chat_id}:{message_id}"
+        if cache_key not in self.__cached_file_ids:
             file_id = await get_file_ids(self.client, int(chat_id), int(message_id))
             if not file_id:
                 logging.info('Message with ID %s not found!', message_id)
                 raise FIleNotFound
-            self.__cached_file_ids[message_id] = file_id
-        return self.__cached_file_ids[message_id]
+            self.__cached_file_ids[cache_key] = file_id
+        return self.__cached_file_ids[cache_key]
 
     async def yield_file(self, file_id: FileId, index: int, offset: int, first_part_cut: int, last_part_cut: int, part_count: int, chunk_size: int) -> Union[str, None]: # type: ignore
         client = self.client

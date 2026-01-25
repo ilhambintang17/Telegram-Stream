@@ -24,7 +24,7 @@ from bot.helper.subtitle_extractor import extract_subtitle_from_telegram, get_su
 
 from bot.telegram import StreamBot
 
-client_cache = {}
+class_cache = {}
 
 routes = web.RouteTableDef()
 db = Database()
@@ -566,8 +566,6 @@ async def stream_handler(request: web.Request):
         logging.critical(e.with_traceback(None))
         raise web.HTTPInternalServerError(text=str(e))
 
-
-class_cache = {}
 
 
 async def stream_from_cache(request: web.Request, cached_path, file_size: int, mime_type: str, file_name: str, chat_id: int, msg_id: int, secure_hash: str):
