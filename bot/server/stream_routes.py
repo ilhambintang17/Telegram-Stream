@@ -710,6 +710,8 @@ async def admin_dashboard(request):
     </html>
     """
     return web.Response(text=html, content_type='text/html')
+
+async def media_streamer(request: web.Request, chat_id: int, id: int, secure_hash: str):
     range_header = request.headers.get("Range", 0)
 
     index = min(work_loads, key=work_loads.get)
