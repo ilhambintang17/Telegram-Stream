@@ -42,3 +42,13 @@ def group_posts_by_series(posts, title_key='title'):
             grouped_posts.append(representative)
     
     return grouped_posts
+
+import orjson
+
+def json_dumps(data):
+    """Fast JSON serialization using orjson."""
+    return orjson.dumps(data).decode('utf-8')
+
+def json_loads(data):
+    """Fast JSON deserialization using orjson."""
+    return orjson.loads(data)

@@ -625,7 +625,90 @@ async def stream_from_cache(request: web.Request, cached_path, file_size: int, m
     )
 
 
-async def media_streamer(request: web.Request, chat_id: int, id: int, secure_hash: str):
+@routes.get('/admin/dashboard')
+async def admin_dashboard(request):
+    """Admin Dashboard Route"""
+    session = await get_session(request)
+    if (username := session.get('user')) != Telegram.ADMIN_USERNAME:
+        return web.json_response({'msg': 'Unauthorized'}, status=403)
+    
+    import psutil
+    
+    # System Stats
+    cpu_percent = psutil.cpu_percent()
+    ram = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+    
+    # Cache Stats
+    cache_stats = await media_cache.cleanup() # Get stats without force cleanup
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Surf-TG Admin Panel</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {{ font-family: 'Outfit', sans-serif; background: #0f172a; color: white; }}
+            .glass {{ background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }}
+        </style>
+    </head>
+    <body class="p-6">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Surf-TG Admin Dashboard</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-gray-400 text-sm mb-2">CPU Usage</h3>
+                    <p class="text-3xl font-bold">{cpu_percent}%</p>
+                    <div class="w-full bg-gray-700 h-2 rounded-full mt-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: {cpu_percent}%"></div>
+                    </div>
+                </div>
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-gray-400 text-sm mb-2">RAM Usage</h3>
+                    <p class="text-3xl font-bold">{ram.percent}%</p>
+                    <p class="text-xs text-gray-400">{get_readable_file_size(ram.used)} / {get_readable_file_size(ram.total)}</p>
+                </div>
+                 <div class="glass rounded-xl p-6">
+                    <h3 class="text-gray-400 text-sm mb-2">Disk Usage</h3>
+                    <p class="text-3xl font-bold">{disk.percent}%</p>
+                     <p class="text-xs text-gray-400">{get_readable_file_size(disk.used)} / {get_readable_file_size(disk.total)}</p>
+                </div>
+                <div class="glass rounded-xl p-6">
+                    <h3 class="text-gray-400 text-sm mb-2">Media Cache</h3>
+                    <p class="text-3xl font-bold">{cache_stats['cache_size_gb']:.2f} GB</p>
+                    <p class="text-xs text-gray-400">{cache_stats['files_cached']} Files Cached</p>
+                </div>
+            </div>
+            
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">Cached Files</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-400">
+                        <thead class="bg-white/5 text-gray-200 uppercase">
+                            <tr>
+                                <th class="p-3">Filename</th>
+                                <th class="p-3">Size</th>
+                                <th class="p-3">Last Access</th>
+                                <th class="p-3">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                             <!-- Loading via API recommended for large lists, but strictly here static for now -->
+                             <tr><td colspan="4" class="p-3 text-center">Use DB Client to view full list</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return web.Response(text=html, content_type='text/html')
     range_header = request.headers.get("Range", 0)
 
     index = min(work_loads, key=work_loads.get)

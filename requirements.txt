@@ -8,3 +8,5 @@ tgcrypto
 uvloop
 pymongo
 motor
+orjson
+psutil

@@ -25,6 +25,10 @@ class Database:
         self.config = self.db["config"]
         self.files = self.db["files"]
         self._initialized = True
+        
+        # Create Indexes
+        self.files.create_index([("title", "text"), ("chat_id", 1)])
+        self.collection.create_index([("name", "text"), ("parent_folder", 1)])
 
     async def create_folder(self, parent_id, folder_name, thumbnail):
         folder = {"parent_folder": parent_id, "name": folder_name,

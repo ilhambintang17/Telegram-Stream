@@ -351,6 +351,18 @@ class MediaCache:
             return_document=True
         )
         
+        # Trigger Smart Pre-Caching if this is a "new" access (or simply every time, logic handles dupes)
+        # To avoid spamming, maybe check if we just updated.
+        # But we need filename. 'result' contains OLD document (default return of find_one_and_update)
+        # If result is None, it means it wasn't in cache DB yet (maybe first stream?)
+        # Actually start_background_download inserts it later.
+        # This record_access is called by stream_from_cache.
+        
+        if result:
+            filename = result.get('file_name')
+            if filename:
+                 asyncio.create_task(self.smart_pre_cache(chat_id, filename))
+        
         if result:
             # Update score
             new_score = self._calculate_score(result["access_count"], now)
@@ -577,6 +589,144 @@ class MediaCache:
             "files_cached": self.collection.count_documents({})
         }
 
+
+    async def smart_pre_cache(self, chat_id: int, current_filename: str):
+        """
+        Predict and pre-cache the next episode based on current filename.
+        Patterns:
+        - "Title - 04 [1080p]..." -> "Title - 05 [1080p]..."
+        - "Title--04 720p" -> "Title--05 720p"
+        """
+        import re
+        from bot.helper.database import Database
+        
+        logging.info(f"Smart Pre-Caching: Analyzing {current_filename}")
+        
+        # Regex to find episode number (supports 01, 1, etc.)
+        # Groups: 1=Prefix, 2=EpisodeNum, 3=Suffix
+        patterns = [
+            r'(.* - )(\d{2,3})( \[.*)',     # Title - 04 [1080p]
+            r'(.*--)(\d{2,3})(.*)',         # Title--04 720p or Title--04
+            r'(.* )(\d{1,3})( .*)'          # Generic Title 04 Suffix
+        ]
+        
+        next_filename_pattern = None
+        
+        for pattern in patterns:
+            match = re.match(pattern, current_filename)
+            if match:
+                prefix = match.group(1)
+                ep_num_str = match.group(2)
+                suffix = match.group(3)
+                
+                try:
+                    curr_ep = int(ep_num_str)
+                    next_ep = curr_ep + 1
+                    
+                    # Pad with zero if original was padded (e.g. 04 -> 05)
+                    next_ep_str = str(next_ep).zfill(len(ep_num_str))
+                    
+                    # Create regex for next file search
+                    # We use regex search in DB because exact suffix might differ slightly
+                    next_filename_pattern = f"^{re.escape(prefix)}{next_ep_str}.*"
+                    logging.info(f"Smart Pre-Caching: Prediction matched. Looking for pattern: {next_filename_pattern}")
+                    break
+                except ValueError:
+                    continue
+        
+        if not next_filename_pattern:
+            logging.debug("Smart Pre-Caching: Could not predict next episode pattern.")
+            return
+
+        # Search for Next Episode in Database
+        db = Database()
+        # Use regex search to find the file
+        # Note: Depending on DB volume, simple regex might be slow without text index.
+        # But this runs in background task.
+        found_files = await db.search_tgfiles(chat_id, next_filename_pattern, page=1, per_page=1)
+        
+        if not found_files:
+             # Also try searching in 'files' collection by regex directly if search_tgfiles abstraction is limited
+             # But let's assume search_tgfiles works with regex query we constructed
+             # Wait, search_tgfiles implementation splits query by space. 
+             # We should probably use a direct find here for precision.
+             pass
+
+        # Let's retry direct DB find for precision since search_tgfiles does token splitting
+        try:
+            regex_query = {"chat_id": str(chat_id), "title": {"$regex": next_filename_pattern, "$options": "i"}}
+            next_file = await db.files.find_one(regex_query)
+            
+            if next_file:
+                logging.info(f"Smart Pre-Caching: Found next episode: {next_file.get('title')}")
+                # Check if already cached
+                next_msg_id = next_file['msg_id']
+                next_hash = next_file['hash']
+                
+                if self.is_cached(chat_id, next_msg_id, next_hash):
+                     logging.info("Smart Pre-Caching: Next episode is already cached. Skipping.")
+                     return
+
+                # Check if already downloading using is_downloading check in start_background_download
+                # We need file_id and info to start download
+                # We need to construct a "fake" file_id object or fetch it from Telegram
+                # Fetching properties is needed.
+                
+                # We spawn a background task to fetch props and start download
+                asyncio.create_task(self._trigger_pre_download(chat_id, next_msg_id, next_hash, next_file['title']))
+                
+            else:
+                logging.info("Smart Pre-Caching: Next episode not found in DB.")
+                
+        except Exception as e:
+            logging.error(f"Smart Pre-Caching Error: {e}")
+
+    async def _trigger_pre_download(self, chat_id, msg_id, secure_hash, filename):
+        """Helper to fetch props and start download for pre-caching."""
+        from bot.telegram import multi_clients, work_loads
+        from bot.server.custom_dl import ByteStreamer
+        from bot.server.stream_routes import class_cache
+        
+        try:
+            # Select client
+            index = min(work_loads, key=work_loads.get)
+            client = multi_clients[index]
+            
+            if client in class_cache:
+                tg_connect = class_cache[client]
+            else:
+                tg_connect = ByteStreamer(client)
+                class_cache[client] = tg_connect
+                
+            # Get File Props
+            file_id = await tg_connect.get_file_properties(chat_id, msg_id)
+            
+            if file_id.unique_id[:6] != secure_hash:
+                 return
+
+            file_size = file_id.file_size
+            mime_type = file_id.mime_type or "video/mp4" # Fallback
+            
+            # Start Download
+            # Use a separate background client index to avoid interfering with current stream choice logic if possible
+            bg_index = (index + 1) % len(multi_clients)
+            
+            # Re-use start_background_download logic
+            # We need to pass the bg_connect matching bg_index
+            bg_client = multi_clients[bg_index]
+            if bg_client in class_cache:
+                bg_connect = class_cache[bg_client]
+            else:
+                bg_connect = ByteStreamer(bg_client)
+                class_cache[bg_client] = bg_connect
+
+            await self.start_background_download(
+                chat_id, msg_id, secure_hash, file_id, file_size, mime_type, filename, bg_connect, bg_index
+            )
+            logging.info(f"Smart Pre-Caching: STARTED download for {filename}")
+            
+        except Exception as e:
+            logging.error(f"Pre-cache trigger failed: {e}")
 
 # Global cache instance
 media_cache = MediaCache()

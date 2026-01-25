@@ -14,6 +14,8 @@ from bot.helper.subtitle_cache import subtitle_cache
 
 LOGGER.info(f"Media cache module loaded, enabled={media_cache.enabled}")
 
+import uvloop
+uvloop.install()
 loop = get_event_loop()
 
 async def start_services():
