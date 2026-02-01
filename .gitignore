@@ -6,3 +6,10 @@ log.txt
 *.session-shm
 *.session-wal
 /.vscode/
+
+# Sensitive config - DO NOT COMMIT
+config.env
+
+# Cache directories
+cache/
+media_cache/
