@@ -56,6 +56,30 @@
 
 ---
 
+## ☁️ Cloudflare CDN Optimization
+
+> **💡 Pro Tip:** For faster video streaming, you can enable Cloudflare CDN and caching in front of your server.
+
+### Benefits
+- **Faster Delivery** - Serve cached content from Cloudflare's global edge network
+- **Reduced Server Load** - Cloudflare handles repeated requests
+- **DDoS Protection** - Built-in protection for your streaming server
+
+### Configuration Tips
+1. Point your domain to Cloudflare DNS
+2. Enable **Caching** for static assets
+3. Set appropriate **Cache Rules** for video files
+4. Enable **Tiered Cache** for better hit rates
+
+### ⚠️ Free Plan Limitations
+| Limitation | Value |
+|------------|-------|
+| **Max Cacheable File Size** | 512 MB |
+| **Suitable For** | Anime episodes (typically 100-400 MB) |
+| **Not Suitable For** | Full movies, batch files > 512 MB |
+
+> **Note:** Single anime episodes are usually 100-400 MB, which works perfectly within Cloudflare's free tier limit. For larger files, they will be served directly from your origin server.
+
 ## 🏗️ Architecture
 
 ```mermaid
