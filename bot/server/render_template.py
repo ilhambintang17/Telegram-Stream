@@ -61,41 +61,25 @@ async def render_page(id, secure_hash, is_admin=False, html='', playlist='', dat
     
     if page > 1:
         prev_page = page - 1
-        prev_url = f"?page={prev_page}"
-        # If 'msg' contains " - ", it likely came from search, so we might need to append &q=... 
-        # But `render_page` doesn't strictly know the 'q'. 
-        # A robust solution needs 'q' passed to render_page.
-        # For this quick fix, we rely on the browser/user re-appending/routes handling it, 
-        # or we just use simple ?page=... which might lose 'q' if not careful.
-        # Wait, if I am on /search/chat?q=foo&page=2, clicking "?page=3" works relative.
-        # So providing just "?page={p}" works if the base action is GET.
-        # BUT anchor tags replace the query string if not carefully constructed.
-        # Better: use JS or backend full URL construction.
-        # Let's try simple relative append/replace. 
-        # Actually standard href="?page=2" REPLACES the query string completely.
-        # To preserve 'q', we'd need to know it. 
-        # Let's hope the user is fine with basic pagination for now or use Javascript to update `page` param.
-        # Javascript solution is safest: onclick="updatePage({page-1})"
-        
         prev_btn = f"""
         <a href="javascript:void(0)" onclick="updateParam('page', {prev_page})" 
-           class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/5 hover:bg-primary/20 text-white transition-colors border border-white/10 hover:border-primary/30">
+           class="flex items-center gap-1 px-4 py-2 min-h-[44px] rounded-full bg-white/5 hover:bg-primary/20 active:bg-primary/30 text-white transition-colors border border-white/10 hover:border-primary/30 cursor-pointer select-none touch-manipulation">
             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
             <span class="text-sm font-medium">Prev</span>
         </a>
-        <script>
-            function updateParam(key, value) {{
-                const url = new URL(window.location.href);
-                url.searchParams.set(key, value);
-                window.location.href = url.toString();
-            }}
-        </script>
         """
 
     next_page = page + 1
     next_btn = f"""
+    <script>
+        function updateParam(key, value) {{
+            const url = new URL(window.location.href);
+            url.searchParams.set(key, value);
+            window.location.href = url.toString();
+        }}
+    </script>
     <a href="javascript:void(0)" onclick="updateParam('page', {next_page})" 
-       class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/5 hover:bg-primary/20 text-white transition-colors border border-white/10 hover:border-primary/30">
+       class="flex items-center gap-1 px-4 py-2 min-h-[44px] rounded-full bg-white/5 hover:bg-primary/20 active:bg-primary/30 text-white transition-colors border border-white/10 hover:border-primary/30 cursor-pointer select-none touch-manipulation">
         <span class="text-sm font-medium">Next</span>
         <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
     </a>
